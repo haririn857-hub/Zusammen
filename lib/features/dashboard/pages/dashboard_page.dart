@@ -50,6 +50,22 @@ class _DashboardPageState extends State<DashboardPage> {
               child: AnimatedBuilder(
                 animation: _controller,
                 builder: (context, _) {
+                  if (_controller.isLoading) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.favorite, size: 48, color: AppColors.roseQuartz),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Connecting to our sanctuary…',
+                            style: AppTypography.loveScript(fontSize: 22, color: AppColors.warmBlush),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
                   return Stack(
                     children: [
                       // Active Tab Body
@@ -58,71 +74,57 @@ class _DashboardPageState extends State<DashboardPage> {
                           children: [
                             // Top App Header
                             Padding(
-                              padding: const EdgeInsetsDirectional.fromSTEB(
-                                20,
-                                16,
-                                20,
-                                8,
-                              ),
+                              padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 8),
                               child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Zusammen',
-                                        style: AppTypography.romanticHeadline(
-                                          fontSize: 22,
-                                          color: AppColors.champagneGold,
-                                        ),
+                                        style: AppTypography.romanticHeadline(fontSize: 22, color: AppColors.champagneGold),
                                       ),
                                       Text(
                                         'Hari & Rintamol — Für Immer',
-                                        style: AppTypography.loveScript(
-                                          fontSize: 16,
-                                          color: AppColors.warmBlush,
-                                        ),
+                                        style: AppTypography.loveScript(fontSize: 16, color: AppColors.warmBlush),
                                       ),
                                     ],
                                   ),
-                                  // Live Presence Pill
-                                  Container(
-                                    padding:
-                                        const EdgeInsetsDirectional.symmetric(
-                                          horizontal: 12,
-                                          vertical: 6,
-                                        ),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.surfaceGlass,
-                                      borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(
-                                        color: AppColors.borderGlass,
+                                  // Live Presence Pill & Refresh
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.refresh_rounded, size: 20, color: AppColors.champagneGold),
+                                        onPressed: () => _controller.fetchAllData(),
+                                        tooltip: 'Sync with Supabase',
                                       ),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          width: 8,
-                                          height: 8,
-                                          decoration: const BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: Colors.greenAccent,
-                                          ),
+                                      Container(
+                                        padding: const EdgeInsetsDirectional.symmetric(horizontal: 12, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.surfaceGlass,
+                                          borderRadius: BorderRadius.circular(20),
+                                          border: Border.all(color: AppColors.borderGlass),
                                         ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          'Connected ❤️',
-                                          style: AppTypography.body(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.white,
-                                          ),
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              width: 8,
+                                              height: 8,
+                                              decoration: const BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: Colors.greenAccent,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              'Live Sync',
+                                              style: AppTypography.body(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white),
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -140,10 +142,10 @@ class _DashboardPageState extends State<DashboardPage> {
                                   BudgetPlannerView(controller: _controller),
 
                                   // Tab 2: Liebesbriefe (100 Reasons Love Deck & Letters)
-                                  const LoveDeckView(),
+                                  LoveDeckView(controller: _controller),
 
                                   // Tab 3: Deutschland (24-Month Roadmap)
-                                  const GermanyRoadmapView(),
+                                  GermanyRoadmapView(controller: _controller),
 
                                   // Tab 4: Verwöhnen (Pamper Coupons & Garden)
                                   PamperView(controller: _controller),
@@ -215,10 +217,7 @@ class _DashboardPageState extends State<DashboardPage> {
     ];
 
     return Container(
-      padding: const EdgeInsetsDirectional.symmetric(
-        horizontal: 10,
-        vertical: 8,
-      ),
+      padding: const EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: const Color(0xE6141122),
         borderRadius: BorderRadius.circular(30),
@@ -251,22 +250,16 @@ class _DashboardPageState extends State<DashboardPage> {
                 vertical: 8,
               ),
               decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.roseQuartz.withValues(alpha: 0.22)
-                    : Colors.transparent,
+                color: isSelected ? AppColors.roseQuartz.withValues(alpha: 0.22) : Colors.transparent,
                 borderRadius: BorderRadius.circular(20),
-                border: isSelected
-                    ? Border.all(color: AppColors.borderGlow)
-                    : null,
+                border: isSelected ? Border.all(color: AppColors.borderGlow) : null,
               ),
               child: Row(
                 children: [
                   Icon(
                     item['icon'] as IconData,
                     size: 20,
-                    color: isSelected
-                        ? AppColors.champagneGold
-                        : AppColors.textTertiary,
+                    color: isSelected ? AppColors.champagneGold : AppColors.textTertiary,
                   ),
                   if (isSelected) ...[
                     const SizedBox(width: 6),

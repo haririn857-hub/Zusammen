@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'core/themes/app_theme.dart';
 import 'features/dashboard/pages/dashboard_page.dart';
+import 'services/supabase/service/supabase_service.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SupabaseService().initialize();
   runApp(const ZusammenApp());
 }
 

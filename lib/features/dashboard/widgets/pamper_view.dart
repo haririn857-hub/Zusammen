@@ -96,7 +96,7 @@ class _PamperViewState extends State<PamperView> {
                 const SizedBox(height: 8),
                 TextButton(
                   onPressed: _crackCookie,
-                  child: Text('Crack Another Cookie 🥠', style: TextStyle(fontSize: 12, color: AppColors.champagneGold)),
+                  child: const Text('Crack Another Cookie 🥠', style: TextStyle(fontSize: 12, color: AppColors.champagneGold)),
                 ),
               ],
             ),
@@ -128,13 +128,13 @@ class _PamperViewState extends State<PamperView> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Every time we save money or study German, a new flower blooms on our future Munich balcony.',
+                  'Every time we save money or send flowers, a new bloom opens in our future Munich balcony.',
                   style: AppTypography.body(fontSize: 12, color: AppColors.textTertiary),
                 ),
                 const SizedBox(height: 14),
-                Row(
+                const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: const [
+                  children: [
                     Text('🌹\nRose', textAlign: TextAlign.center, style: TextStyle(fontSize: 22)),
                     Text('🌼\nJasmine', textAlign: TextAlign.center, style: TextStyle(fontSize: 22)),
                     Text('🌻\nSunflower', textAlign: TextAlign.center, style: TextStyle(fontSize: 22)),
@@ -145,16 +145,17 @@ class _PamperViewState extends State<PamperView> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: () {
+                    onPressed: () async {
                       HapticFeedback.mediumImpact();
-                      widget.controller.flowersBloomed += 1;
-                      setState(() {});
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          behavior: SnackBarBehavior.floating,
-                          content: Text('🌹 Hari watered the garden: A fresh morning rose bloomed for Rintamol!'),
-                        ),
-                      );
+                      await widget.controller.waterGardenAndSendFlower();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            behavior: SnackBarBehavior.floating,
+                            content: Text('🌹 Sent a fresh morning bloom to Rintamol and updated Supabase!'),
+                          ),
+                        );
+                      }
                     },
                     icon: const Icon(Icons.water_drop_rounded, size: 16, color: Colors.white),
                     label: const Text('Send Morning Bloom to Rintamol', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
@@ -196,6 +197,7 @@ class _PamperViewState extends State<PamperView> {
                   child: ElevatedButton.icon(
                     onPressed: () {
                       HapticFeedback.heavyImpact();
+                      widget.controller.triggerHeartPulse();
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           behavior: SnackBarBehavior.floating,

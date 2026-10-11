@@ -10,19 +10,87 @@ class CoinJarWidget extends StatelessWidget {
 
   const CoinJarWidget({super.key, required this.controller});
 
-  void _dropCoin(BuildContext context, double amount, String note) {
+  void _dropCoin(BuildContext context, double amount, String note) async {
     HapticFeedback.mediumImpact();
-    controller.dropSacrificeCoin(amount, note);
+    await controller.addSavingLog(amount: amount, title: note);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: AppColors.surface,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-        content: Text(
-          '🪙 Clink! Added ₹${amount.toInt()} ($note) to our Germany fund!',
-          style: AppTypography.body(color: AppColors.champagneGold),
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: AppColors.surface,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+          content: Text(
+            '🪙 Clink! Added ₹${amount.toInt()} ($note) to Supabase!',
+            style: AppTypography.body(color: AppColors.champagneGold),
+          ),
         ),
+      );
+    }
+  }
+
+  void _showCustomDepositDialog(BuildContext context) {
+    final amountController = TextEditingController();
+    final noteController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Text('Add to Germany Savings', style: AppTypography.romanticHeadline(fontSize: 18)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: amountController,
+              keyboardType: TextInputType.number,
+              style: AppTypography.numbers(color: AppColors.champagneGold),
+              decoration: InputDecoration(
+                labelText: 'Amount (₹)',
+                labelStyle: AppTypography.body(color: AppColors.textTertiary),
+                filled: true,
+                fillColor: AppColors.surfaceGlass,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: noteController,
+              style: AppTypography.body(color: Colors.white),
+              decoration: InputDecoration(
+                labelText: 'Note (e.g. October Salary Savings)',
+                labelStyle: AppTypography.body(color: AppColors.textTertiary),
+                filled: true,
+                fillColor: AppColors.surfaceGlass,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: AppColors.textTertiary))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.champagneGold, foregroundColor: Colors.black),
+            onPressed: () async {
+              final amount = double.tryParse(amountController.text.trim());
+              if (amount != null && amount > 0) {
+                HapticFeedback.mediumImpact();
+                final note = noteController.text.trim().isNotEmpty ? noteController.text.trim() : 'Sacrifice savings';
+                await controller.addSavingLog(amount: amount, title: note);
+                if (ctx.mounted) Navigator.pop(ctx);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      behavior: SnackBarBehavior.floating,
+                      content: Text('🎉 Deposited ₹${amount.toInt()} to our Germany fund!'),
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Save to Fund', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
       ),
     );
   }
@@ -58,7 +126,7 @@ class CoinJarWidget extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Every tea or meal skipped at work brings us 10 km closer to Frankfurt.',
+            'Every rupee saved at work brings our flight to Munich closer.',
             style: AppTypography.body(fontSize: 12, color: AppColors.textTertiary),
           ),
           const SizedBox(height: 16),
@@ -93,6 +161,22 @@ class CoinJarWidget extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 14),
+
+          // Custom Deposit Button
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _showCustomDepositDialog(context),
+              icon: const Icon(Icons.add_circle_outline_rounded, size: 16, color: AppColors.champagneGold),
+              label: Text('Log Salary Deposit or Custom Amount', style: AppTypography.body(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.champagneGold)),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: AppColors.champagneGold.withValues(alpha: 0.5)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                padding: const EdgeInsetsDirectional.symmetric(vertical: 10),
+              ),
+            ),
           ),
         ],
       ),

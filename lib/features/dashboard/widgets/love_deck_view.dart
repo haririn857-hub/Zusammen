@@ -3,9 +3,12 @@ import 'package:flutter/services.dart';
 import '../../../core/themes/colors.dart';
 import '../../../core/themes/typography.dart';
 import '../../../shared/widgets/romantic_card.dart';
+import '../controllers/dashboard_controller.dart';
 
 class LoveDeckView extends StatefulWidget {
-  const LoveDeckView({super.key});
+  final DashboardController controller;
+
+  const LoveDeckView({super.key, required this.controller});
 
   @override
   State<LoveDeckView> createState() => _LoveDeckViewState();
@@ -14,37 +17,60 @@ class LoveDeckView extends StatefulWidget {
 class _LoveDeckViewState extends State<LoveDeckView> {
   int _activeCardIndex = 0;
 
-  final List<Map<String, dynamic>> _reasons = [
-    {
-      'number': 1,
-      'quote': 'Because when you laugh, all the fatigue of my work and low salary disappears into peace.',
-      'category': 'My Sanctuary',
-    },
-    {
-      'number': 2,
-      'quote': 'Because you believed in our Germany dream when everyone else in society doubted us.',
-      'category': 'My Courage',
-    },
-    {
-      'number': 3,
-      'quote': 'Because in your eyes, I see my home, my peace, and my forever wife.',
-      'category': 'My Forever',
-    },
-    {
-      'number': 4,
-      'quote': 'Because even when our families oppose us, your hand in mine makes me feel invincible.',
-      'category': 'Our Shield',
-    },
-    {
-      'number': 5,
-      'quote': 'Because no matter how hard life gets, waking up beside you in Munich is worth every battle.',
-      'category': 'Our Future',
-    },
-  ];
+  void _showAddReasonDialog(BuildContext context) {
+    final textController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Text('Add a Reason Why I Choose You', style: AppTypography.romanticHeadline(fontSize: 18)),
+        content: TextField(
+          controller: textController,
+          maxLines: 3,
+          style: AppTypography.body(color: Colors.white),
+          decoration: InputDecoration(
+            hintText: 'Because…',
+            hintStyle: AppTypography.body(color: AppColors.textTertiary),
+            filled: true,
+            fillColor: AppColors.surfaceGlass,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: AppColors.textTertiary))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.roseQuartz),
+            onPressed: () async {
+              if (textController.text.trim().isNotEmpty) {
+                HapticFeedback.mediumImpact();
+                await widget.controller.addLoveCard(textController.text.trim());
+                if (ctx.mounted) Navigator.pop(ctx);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      behavior: SnackBarBehavior.floating,
+                      content: Text('💌 Added new reason to our love deck in Supabase!'),
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Add to Deck', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final activeReason = _reasons[_activeCardIndex];
+    final cards = widget.controller.loveCards;
+    if (_activeCardIndex >= cards.length && cards.isNotEmpty) {
+      _activeCardIndex = cards.length - 1;
+    }
+
+    final activeReason = cards.isNotEmpty ? cards[_activeCardIndex] : null;
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
@@ -53,89 +79,114 @@ class _LoveDeckViewState extends State<LoveDeckView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header
-          Text(
-            'Liebesbriefe & 100 Reasons',
-            style: AppTypography.romanticHeadline(fontSize: 24, color: AppColors.velvetPink),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'A private testament of my love for you, Rintamol — unshakeable through every storm.',
-            style: AppTypography.body(fontSize: 13, color: AppColors.textSecondary),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Liebesbriefe & 100 Reasons',
+                      style: AppTypography.romanticHeadline(fontSize: 24, color: AppColors.velvetPink),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'A private testament of my love for you, Rintamol.',
+                      style: AppTypography.body(fontSize: 13, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: () => _showAddReasonDialog(context),
+                icon: const Icon(Icons.add_circle, color: AppColors.roseQuartz, size: 32),
+                tooltip: 'Add new reason',
+              ),
+            ],
           ),
           const SizedBox(height: 20),
 
           // 100 Reasons Interactive Card
-          RomanticCard(
-            padding: const EdgeInsetsDirectional.all(24),
-            borderColor: AppColors.roseQuartz.withValues(alpha: 0.5),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.roseQuartz.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
+          if (activeReason != null)
+            RomanticCard(
+              padding: const EdgeInsetsDirectional.all(24),
+              borderColor: AppColors.roseQuartz.withValues(alpha: 0.5),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: const EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.roseQuartz.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          'Reason #${activeReason['card_number']} of ${cards.length}',
+                          style: AppTypography.numbers(fontSize: 12, color: AppColors.velvetPink),
+                        ),
                       ),
-                      child: Text(
-                        'Reason #${activeReason['number']} of 100',
-                        style: AppTypography.numbers(fontSize: 12, color: AppColors.velvetPink),
+                      Text(
+                        'Live from Supabase',
+                        style: AppTypography.body(fontSize: 11, color: AppColors.champagneGold),
                       ),
-                    ),
-                    Text(
-                      activeReason['category'] as String,
-                      style: AppTypography.body(fontSize: 12, color: AppColors.champagneGold),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  '“${activeReason['quote']}”',
-                  style: AppTypography.romanticHeadline(fontSize: 20, color: AppColors.textPrimary),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 18),
-                Text(
-                  '— Forever yours, Harikrishnan',
-                  style: AppTypography.loveScript(fontSize: 18, color: AppColors.warmBlush),
-                ),
-                const SizedBox(height: 24),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    '“${activeReason['reason_text']}”',
+                    style: AppTypography.romanticHeadline(fontSize: 20, color: AppColors.textPrimary),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    '— Forever yours, Harikrishnan',
+                    style: AppTypography.loveScript(fontSize: 18, color: AppColors.warmBlush),
+                  ),
+                  const SizedBox(height: 24),
 
-                // Card Navigation
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_rounded, size: 18, color: Colors.white70),
-                      onPressed: _activeCardIndex > 0
-                          ? () {
-                              HapticFeedback.lightImpact();
-                              setState(() => _activeCardIndex--);
-                            }
-                          : null,
-                    ),
-                    const SizedBox(width: 16),
-                    Text(
-                      '${_activeCardIndex + 1} / ${_reasons.length}',
-                      style: AppTypography.body(fontSize: 13, color: AppColors.textSecondary),
-                    ),
-                    const SizedBox(width: 16),
-                    IconButton(
-                      icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18, color: Colors.white70),
-                      onPressed: _activeCardIndex < _reasons.length - 1
-                          ? () {
-                              HapticFeedback.lightImpact();
-                              setState(() => _activeCardIndex++);
-                            }
-                          : null,
-                    ),
-                  ],
-                ),
-              ],
+                  // Card Navigation
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_rounded, size: 18, color: Colors.white70),
+                        onPressed: _activeCardIndex > 0
+                            ? () {
+                                HapticFeedback.lightImpact();
+                                setState(() => _activeCardIndex--);
+                              }
+                            : null,
+                      ),
+                      const SizedBox(width: 16),
+                      Text(
+                        '${_activeCardIndex + 1} / ${cards.length}',
+                        style: AppTypography.body(fontSize: 13, color: AppColors.textSecondary),
+                      ),
+                      const SizedBox(width: 16),
+                      IconButton(
+                        icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18, color: Colors.white70),
+                        onPressed: _activeCardIndex < cards.length - 1
+                            ? () {
+                                HapticFeedback.lightImpact();
+                                setState(() => _activeCardIndex++);
+                              }
+                            : null,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            )
+          else
+            RomanticCard(
+              padding: const EdgeInsetsDirectional.all(24),
+              child: Center(
+                child: Text('Loading our love reasons from Supabase…', style: AppTypography.body()),
+              ),
             ),
-          ),
 
           const SizedBox(height: 28),
 
@@ -182,7 +233,7 @@ class _LoveDeckViewState extends State<LoveDeckView> {
           const SizedBox(height: 12),
 
           _buildLockedEnvelope(
-            title: 'To Open at Kochi International Airport (Departure Gate)',
+            title: 'To Open at Kochi Airport (Departure Gate)',
             lockDate: 'October 1, 2028',
             icon: '🛫',
           ),
