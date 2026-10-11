@@ -92,7 +92,7 @@ class _LoveDeckViewState extends State<LoveDeckView> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'A private testament of my love for you, Rintamol.',
+                      'A private testament of my love for you, ${widget.controller.rintaName}.',
                       style: AppTypography.body(fontSize: 13, color: AppColors.textSecondary),
                     ),
                   ],
@@ -142,7 +142,7 @@ class _LoveDeckViewState extends State<LoveDeckView> {
                   ),
                   const SizedBox(height: 18),
                   Text(
-                    '— Forever yours, Harikrishnan',
+                    '— Forever yours, ${widget.controller.hariName}',
                     style: AppTypography.loveScript(fontSize: 18, color: AppColors.warmBlush),
                   ),
                   const SizedBox(height: 24),
@@ -190,59 +190,57 @@ class _LoveDeckViewState extends State<LoveDeckView> {
 
           const SizedBox(height: 28),
 
-          // Voice Love Pills Shelf
+          // Voice Love Pills Shelf (From Database)
           Text(
             'Voice Love Pills (Audio Capsules)',
             style: AppTypography.romanticHeadline(fontSize: 19, color: AppColors.textPrimary),
           ),
           const SizedBox(height: 6),
           Text(
-            'When the world feels loud, tap a pill to hear Hari’s voice beside you.',
+            'When the world feels loud, tap a pill to hear ${widget.controller.hariName}’s voice beside you.',
             style: AppTypography.body(fontSize: 12, color: AppColors.textTertiary),
           ),
           const SizedBox(height: 14),
 
-          _buildVoicePillCard(
-            title: 'Take when family pressure feels heavy',
-            duration: '0:22',
-            emoji: '💊',
-            subtext: '“Rintamol, take a deep breath. In 2 years, we will wake up in Munich…”',
-          ),
-          const SizedBox(height: 10),
-          _buildVoicePillCard(
-            title: 'Take when you feel scared about our future',
-            duration: '0:18',
-            emoji: '🛡️',
-            subtext: '“I will protect you with my life. No religion or obstacle will stop us.”',
-          ),
-          const SizedBox(height: 10),
-          _buildVoicePillCard(
-            title: 'Take when you just miss your Hari at night',
-            duration: '0:25',
-            emoji: '🌙',
-            subtext: '“Goodnight, my future wife. Look at the moon; I am looking at it too.”',
-          ),
+          if (widget.controller.voicePills.isNotEmpty)
+            ...widget.controller.voicePills.map((pill) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10.0),
+                  child: _buildVoicePillCard(
+                    title: pill['title'] as String? ?? 'Voice Pill',
+                    duration: pill['audio_storage_path'] as String? ?? '0:20',
+                    emoji: '💊',
+                    subtext: pill['content_encrypted'] as String? ?? '',
+                  ),
+                ))
+          else
+            RomanticCard(
+              padding: const EdgeInsets.all(16),
+              child: Center(child: Text('Loading voice pills…', style: AppTypography.body())),
+            ),
 
           const SizedBox(height: 28),
 
-          // Time-Locked Envelopes
+          // Time-Locked Envelopes (From Database)
           Text(
             'Time-Locked Wax Envelopes',
             style: AppTypography.romanticHeadline(fontSize: 19, color: AppColors.textPrimary),
           ),
           const SizedBox(height: 12),
 
-          _buildLockedEnvelope(
-            title: 'To Open at Kochi Airport (Departure Gate)',
-            lockDate: 'October 1, 2028',
-            icon: '🛫',
-          ),
-          const SizedBox(height: 10),
-          _buildLockedEnvelope(
-            title: 'To Open on the Day We Sign Special Marriage Act Registry',
-            lockDate: 'June 1, 2027',
-            icon: '💍',
-          ),
+          if (widget.controller.timeLockedEnvelopes.isNotEmpty)
+            ...widget.controller.timeLockedEnvelopes.map((env) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10.0),
+                  child: _buildLockedEnvelope(
+                    title: env['title'] as String? ?? 'Time-Locked Letter',
+                    lockDate: env['unlock_at'] != null ? env['unlock_at'].toString().split('T').first : 'Target Date',
+                    icon: env['audio_storage_path'] as String? ?? '💌',
+                  ),
+                ))
+          else
+            RomanticCard(
+              padding: const EdgeInsets.all(16),
+              child: Center(child: Text('Loading locked letters…', style: AppTypography.body())),
+            ),
         ],
       ),
     );

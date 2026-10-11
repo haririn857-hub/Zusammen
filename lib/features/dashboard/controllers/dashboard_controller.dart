@@ -18,13 +18,32 @@ class DashboardController extends ChangeNotifier with Initializer {
   int flowersBloomed = 14;
 
   // Realtime Live Lists
+  List<Map<String, dynamic>> coupleMembers = [];
   List<Map<String, dynamic>> savingsGoals = [];
   List<Map<String, dynamic>> savingsLogs = [];
   List<Map<String, dynamic>> milestones = [];
   List<Map<String, dynamic>> coupons = [];
   List<Map<String, dynamic>> dreamDates = [];
   List<Map<String, dynamic>> loveCards = [];
+  List<Map<String, dynamic>> courageVaultEntries = [];
   String morningNote = 'Good morning Rintamol! Drink warm water, stay strong, and remember: today is one step closer to Munich! ❤️ — Your Hari';
+
+  // Live Partner Details
+  Map<String, dynamic>? get hariMember =>
+      coupleMembers.firstWhere((m) => m['partner_role'] == 'hari', orElse: () => <String, dynamic>{});
+  Map<String, dynamic>? get rintaMember =>
+      coupleMembers.firstWhere((m) => m['partner_role'] == 'rinta', orElse: () => <String, dynamic>{});
+
+  String get hariName => (hariMember?['pet_name'] as String?) ?? (coupleData?['couple_name']?.toString().split('&').first.trim() ?? 'Hari');
+  String get rintaName => (rintaMember?['pet_name'] as String?) ?? (coupleData?['couple_name']?.toString().split('&').last.trim() ?? 'Rintamol');
+  String get coupleTitle => (coupleData?['couple_name'] as String?) ?? '$hariName & $rintaName';
+
+  List<Map<String, dynamic>> get voicePills =>
+      courageVaultEntries.where((e) => e['category'] == 'voice_love_pill').toList();
+  List<Map<String, dynamic>> get timeLockedEnvelopes =>
+      courageVaultEntries.where((e) => e['category'] == 'time_locked_envelope').toList();
+  List<Map<String, dynamic>> get fortuneCompliments =>
+      courageVaultEntries.where((e) => e['category'] == 'crisis_support').toList();
 
   // Live Pulse State
   bool isHeartBeating = false;
@@ -145,6 +164,21 @@ class DashboardController extends ChangeNotifier with Initializer {
       if (notesRes.isNotEmpty) {
         morningNote = notesRes.first['note_text'] as String? ?? morningNote;
       }
+
+      // 9. Fetch Live Couple Members
+      final membersRes = await _client
+          .from('couple_members')
+          .select()
+          .eq('couple_id', AppConfig.coupleId);
+      coupleMembers = List<Map<String, dynamic>>.from(membersRes);
+
+      // 10. Fetch Courage Vault & Voice Pills & Envelopes
+      final vaultRes = await _client
+          .from('courage_vault_entries')
+          .select()
+          .eq('couple_id', AppConfig.coupleId)
+          .order('created_at', ascending: true);
+      courageVaultEntries = List<Map<String, dynamic>>.from(vaultRes);
 
       isLoading = false;
       notifyListeners();

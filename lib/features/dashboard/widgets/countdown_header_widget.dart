@@ -25,7 +25,7 @@ class CountdownHeaderWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Hari',
+                controller.hariName,
                 style: AppTypography.romanticHeadline(fontSize: 26, color: AppColors.champagneGold),
               ),
               Padding(
@@ -41,7 +41,7 @@ class CountdownHeaderWidget extends StatelessWidget {
                     ),
               ),
               Text(
-                'Rintamol',
+                controller.rintaName,
                 style: AppTypography.romanticHeadline(fontSize: 26, color: AppColors.velvetPink),
               ),
             ],

@@ -22,7 +22,7 @@ class StickyNoteWidget extends StatelessWidget {
           maxLines: 3,
           style: AppTypography.body(color: Colors.white),
           decoration: InputDecoration(
-            hintText: 'Type your morning note for Rintamol…',
+            hintText: 'Type your morning note for ${controller.rintaName}…',
             hintStyle: AppTypography.body(color: AppColors.textTertiary),
             filled: true,
             fillColor: AppColors.surfaceGlass,

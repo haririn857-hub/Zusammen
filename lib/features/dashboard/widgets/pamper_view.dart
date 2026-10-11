@@ -17,26 +17,41 @@ class PamperView extends StatefulWidget {
 
 class _PamperViewState extends State<PamperView> {
   bool _isCookieCracked = false;
-  String _currentFortune = '“Scientifically proven: Rintamol has the sweetest, most contagious laugh in Kerala.”';
-
-  final List<String> _fortunes = [
-    '“Scientifically proven: Rintamol has the sweetest, most contagious laugh in Kerala.”',
-    '“Reminder: The future Mrs. Harikrishnan is looking breathtaking today.”',
-    '“Even on your grumpiest, most stubborn days, you are still my favorite human on Earth.”',
-    '“You are stronger than any family argument, and you are loved beyond measure.”',
-    '“Counting down every second until we share our first hot chocolate in Munich.”',
-  ];
+  String _currentFortune = '';
 
   void _crackCookie() {
     HapticFeedback.heavyImpact();
+    final dbFortunes = widget.controller.fortuneCompliments
+        .map((f) => f['content_encrypted'] as String? ?? '')
+        .where((s) => s.isNotEmpty)
+        .toList();
+
+    final pool = dbFortunes.isNotEmpty
+        ? dbFortunes
+        : [
+            'Scientifically proven: Rintamol has the sweetest, most contagious laugh in Kerala.',
+            'Reminder: The future Mrs. Harikrishnan is looking breathtaking today.',
+            'Even on your grumpiest, most stubborn days, you are still my favorite human on Earth.',
+          ];
+
     setState(() {
       _isCookieCracked = true;
-      _currentFortune = (_fortunes..shuffle()).first;
+      _currentFortune = (List<String>.from(pool)..shuffle()).first;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final rintaName = widget.controller.rintaName;
+    final hariName = widget.controller.hariName;
+
+    if (_currentFortune.isEmpty) {
+      final dbFortunes = widget.controller.fortuneCompliments;
+      _currentFortune = dbFortunes.isNotEmpty
+          ? (dbFortunes.first['content_encrypted'] as String? ?? 'You are loved beyond measure.')
+          : '“Scientifically proven: $rintaName has the sweetest, most contagious laugh in Kerala.”';
+    }
+
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 100),
@@ -50,7 +65,7 @@ class _PamperViewState extends State<PamperView> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Everything to make Rintamol smile, laugh, and feel loved every single day.',
+            'Everything to make $rintaName smile, laugh, and feel loved every single day.',
             style: AppTypography.body(fontSize: 13, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 20),
@@ -150,15 +165,15 @@ class _PamperViewState extends State<PamperView> {
                       await widget.controller.waterGardenAndSendFlower();
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
+                          SnackBar(
                             behavior: SnackBarBehavior.floating,
-                            content: Text('🌹 Sent a fresh morning bloom to Rintamol!'),
+                            content: Text('🌹 Sent a fresh morning bloom to $rintaName!'),
                           ),
                         );
                       }
                     },
                     icon: const Icon(Icons.water_drop_rounded, size: 16, color: Colors.white),
-                    label: const Text('Send Morning Bloom to Rintamol', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                    label: Text('Send Morning Bloom to $rintaName', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.roseQuartz,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -172,7 +187,7 @@ class _PamperViewState extends State<PamperView> {
 
           const SizedBox(height: 24),
 
-          // Emergency "Hari, Hold My Hand" Button
+          // Emergency Hand-Holding Button
           RomanticCard(
             padding: const EdgeInsetsDirectional.all(20),
             borderColor: Colors.redAccent.withValues(alpha: 0.4),
@@ -199,15 +214,15 @@ class _PamperViewState extends State<PamperView> {
                       HapticFeedback.heavyImpact();
                       widget.controller.triggerHeartPulse();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
+                        SnackBar(
                           behavior: SnackBarBehavior.floating,
-                          backgroundColor: Color(0xFF2E1A29),
-                          content: Text('🫂 “Hari is holding your hand right now. Breathe deeply, my love. We are going to make it.”'),
+                          backgroundColor: const Color(0xFF2E1A29),
+                          content: Text('🫂 “$hariName is holding your hand right now. Breathe deeply, my love. We are going to make it.”'),
                         ),
                       );
                     },
                     icon: const Icon(Icons.favorite, size: 18, color: Colors.white),
-                    label: const Text('Hari, Hold My Hand Right Now', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
+                    label: Text('$hariName, Hold My Hand Right Now', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF9E2A2B),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

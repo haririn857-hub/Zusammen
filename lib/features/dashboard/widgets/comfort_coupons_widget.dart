@@ -25,7 +25,7 @@ class ComfortCouponsWidget extends StatelessWidget {
                 children: [
                   const Text('🎟️', style: TextStyle(fontSize: 20)),
                   const SizedBox(width: 8),
-                  Text('Rintamol’s Pamper Coupons', style: AppTypography.romanticHeadline(fontSize: 18)),
+                  Text('${controller.rintaName}’s Pamper Coupons', style: AppTypography.romanticHeadline(fontSize: 18)),
                 ],
               ),
               Text(
@@ -95,7 +95,7 @@ class ComfortCouponsWidget extends StatelessWidget {
                                       backgroundColor: AppColors.surface,
                                       behavior: SnackBarBehavior.floating,
                                       content: Text(
-                                        '🎉 Coupon redeemed! Hari owes you: ${coupon['title']}',
+                                        '🎉 Coupon redeemed! ${controller.hariName} owes you: ${coupon['title']}',
                                         style: AppTypography.body(color: AppColors.champagneGold),
                                       ),
                                     ),

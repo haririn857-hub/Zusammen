@@ -41,7 +41,7 @@ class ThumbprintKissWidget extends StatelessWidget {
                   backgroundColor: AppColors.surface,
                   behavior: SnackBarBehavior.floating,
                   content: Text(
-                    '❤️ Sent heartbeat pulse! Your phone and Rinta’s phone are vibrating together.',
+                    '❤️ Sent heartbeat pulse! Your phone and ${controller.rintaName}’s phone are vibrating together.',
                     style: AppTypography.body(color: AppColors.warmBlush),
                   ),
                 ),
@@ -78,7 +78,7 @@ class ThumbprintKissWidget extends StatelessWidget {
 
           const SizedBox(height: 14),
           Text(
-            controller.isHeartBeating ? '“Holding your hand right now across the distance…”' : 'Tap to send an instant Heartbeat & Kiss to Rintamol',
+            controller.isHeartBeating ? '“Holding your hand right now across the distance…”' : 'Tap to send an instant Heartbeat & Kiss to ${controller.rintaName}',
             style: AppTypography.loveScript(fontSize: 18, color: AppColors.warmBlush),
             textAlign: TextAlign.center,
           ),

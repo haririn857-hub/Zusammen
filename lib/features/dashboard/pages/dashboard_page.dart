@@ -86,7 +86,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                         style: AppTypography.romanticHeadline(fontSize: 22, color: AppColors.champagneGold),
                                       ),
                                       Text(
-                                        'Hari & Rintamol — Für Immer',
+                                        '${_controller.coupleTitle} — Für Immer',
                                         style: AppTypography.loveScript(fontSize: 16, color: AppColors.warmBlush),
                                       ),
                                     ],
@@ -187,7 +187,7 @@ class _DashboardPageState extends State<DashboardPage> {
               const SizedBox(height: 18),
 
               // 2. Dual Horizons: Kerala ⇄ Munich
-              const DualHorizonsWidget(),
+              DualHorizonsWidget(controller: _controller),
               const SizedBox(height: 18),
 
               // 3. Morning Sticky Note on Virtual Fridge
