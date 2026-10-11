@@ -74,13 +74,20 @@ BEGIN
     (v_couple_id, 'Walking through Christmas Markets drinking hot spiced cider', 'Nuremberg / Munich')
     ON CONFLICT DO NOTHING;
 
-    -- 6. Insert Initial Love Deck Cards (100 Reasons)
+    -- 6. Insert Initial Love Deck Cards (author_id is NULL for starter system templates)
     INSERT INTO public.love_deck_cards (
         couple_id, author_id, card_number, reason_text
     ) VALUES
-    (v_couple_id, '00000000-0000-0000-0000-000000000001', 1, 'Because when you laugh, all the stress of my work and low salary disappears into peace.'),
-    (v_couple_id, '00000000-0000-0000-0000-000000000001', 2, 'Because you stood beside me and believed in our Germany dream when everyone else doubted us.'),
-    (v_couple_id, '00000000-0000-0000-0000-000000000001', 3, 'Because in your eyes, I see my home, my strength, and my forever wife.')
+    (v_couple_id, NULL, 1, 'Because when you laugh, all the stress of my work and low salary disappears into peace.'),
+    (v_couple_id, NULL, 2, 'Because you stood beside me and believed in our Germany dream when everyone else doubted us.'),
+    (v_couple_id, NULL, 3, 'Because in your eyes, I see my home, my strength, and my forever wife.')
+    ON CONFLICT DO NOTHING;
+
+    -- 7. Insert Morning Sticky Note (author_id is NULL for starter system templates)
+    INSERT INTO public.sticky_notes (
+        couple_id, author_id, note_text, color_hex, is_active
+    ) VALUES
+    (v_couple_id, NULL, 'Good morning Rintamol! Drink warm water, don’t skip lunch, and remember: today is one step closer to Munich! ❤️ — Your Hari', '#FFF3B0', true)
     ON CONFLICT DO NOTHING;
 
 END $$;

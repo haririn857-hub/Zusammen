@@ -1,6 +1,7 @@
 -- ==============================================================================
--- SUPABASE DATABASE SCHEMA: Zusammen (Hari & Rintamol's Dream Life App)
--- Designed for 100% Free Tier (2 Users) with Realtime, RLS & Ephemeral Broadcasts
+-- MIGRATION: 20261011000000_create_zusammen_schema.sql
+-- Project: Zusammen (Für Immer) - Hari & Rintamol
+-- Architecture: Supabase PostgreSQL with RLS, Realtime & Ephemeral Channels
 -- ==============================================================================
 
 -- 1. Enable Required Extensions
@@ -60,7 +61,7 @@ CREATE TABLE IF NOT EXISTS public.savings_goals (
 CREATE TABLE IF NOT EXISTS public.savings_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     couple_id UUID NOT NULL REFERENCES public.couples(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     goal_id UUID REFERENCES public.savings_goals(id) ON DELETE SET NULL,
     amount NUMERIC(12, 2) NOT NULL,
     currency TEXT NOT NULL DEFAULT 'INR' CHECK (currency IN ('INR', 'EUR')),
@@ -74,11 +75,10 @@ CREATE TABLE IF NOT EXISTS public.savings_logs (
 -- 4. HAPPINESS FEATURES: RINTAMOL'S COUPONS & GERMANY DATE BUCKET LIST
 -- ==============================================================================
 
--- Rintamol's Comfort Coupon Book
 CREATE TABLE IF NOT EXISTS public.comfort_coupons (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     couple_id UUID NOT NULL REFERENCES public.couples(id) ON DELETE CASCADE,
-    title TEXT NOT NULL, -- e.g., 'Win any silly argument automatically', 'Midnight Maggi'
+    title TEXT NOT NULL,
     description TEXT,
     icon_name TEXT DEFAULT 'gift',
     is_redeemed BOOLEAN DEFAULT false,
@@ -86,46 +86,60 @@ CREATE TABLE IF NOT EXISTS public.comfort_coupons (
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now())
 );
 
--- Germany Fairytale Dream Dates Bucket List
 CREATE TABLE IF NOT EXISTS public.germany_dream_dates (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     couple_id UUID NOT NULL REFERENCES public.couples(id) ON DELETE CASCADE,
-    title TEXT NOT NULL, -- e.g., 'Making our first snowman in Bavarian Alps'
+    title TEXT NOT NULL,
     location TEXT DEFAULT 'Germany',
     is_achieved BOOLEAN DEFAULT false,
     photo_storage_path TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now())
 );
 
--- Balcony Flower Garden Blooms
 CREATE TABLE IF NOT EXISTS public.balcony_flowers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     couple_id UUID NOT NULL REFERENCES public.couples(id) ON DELETE CASCADE,
-    sender_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    flower_type TEXT NOT NULL DEFAULT 'rose', -- 'rose', 'jasmine', 'edelweiss', 'sunflower'
+    sender_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    flower_type TEXT NOT NULL DEFAULT 'rose',
     message TEXT,
     bloomed_at DATE NOT NULL DEFAULT CURRENT_DATE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now())
 );
 
 -- ==============================================================================
--- 5. LOVE EXPRESSIONS: 100 REASONS, STICKY NOTES & COURAGE VAULT
+-- 5. GERMANY ROADMAP & COURAGE VAULT
 -- ==============================================================================
 
+CREATE TABLE IF NOT EXISTS public.germany_milestones (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    couple_id UUID NOT NULL REFERENCES public.couples(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    description TEXT,
+    category TEXT NOT NULL CHECK (category IN ('language', 'aps', 'documents', 'finance', 'visa', 'flight', 'housing')),
+    target_date DATE NOT NULL,
+    order_index INT NOT NULL DEFAULT 0,
+    is_completed BOOLEAN NOT NULL DEFAULT false,
+    completed_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    completed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now())
+);
+
+-- author_id is nullable to allow starter template seed cards
 CREATE TABLE IF NOT EXISTS public.love_deck_cards (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     couple_id UUID NOT NULL REFERENCES public.couples(id) ON DELETE CASCADE,
-    author_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    author_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     card_number INT NOT NULL,
     reason_text TEXT NOT NULL,
     revealed_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now())
 );
 
+-- author_id is nullable to allow starter fridge sticky notes
 CREATE TABLE IF NOT EXISTS public.sticky_notes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     couple_id UUID NOT NULL REFERENCES public.couples(id) ON DELETE CASCADE,
-    author_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    author_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     note_text TEXT NOT NULL,
     color_hex TEXT DEFAULT '#FFF3B0',
     is_active BOOLEAN DEFAULT true,
@@ -135,15 +149,15 @@ CREATE TABLE IF NOT EXISTS public.sticky_notes (
 CREATE TABLE IF NOT EXISTS public.courage_vault_entries (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     couple_id UUID NOT NULL REFERENCES public.couples(id) ON DELETE CASCADE,
-    author_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    author_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     title TEXT NOT NULL,
     category TEXT NOT NULL CHECK (category IN (
-        'crisis_support',       -- "Read when families are yelling at home"
-        'sacred_vow',           -- Our immutable promises to each other
-        'time_locked_envelope', -- Unlocks on a specific date (e.g. Flight day)
-        'voice_love_pill',      -- Short soothing audio capsule
-        'sma_legal_plan',       -- Special Marriage Act safe guide
-        'scratch_date_card'     -- Secret scratch-off surprise date
+        'crisis_support',
+        'sacred_vow',
+        'time_locked_envelope',
+        'voice_love_pill',
+        'sma_legal_plan',
+        'scratch_date_card'
     )),
     content_encrypted TEXT NOT NULL,
     audio_storage_path TEXT,
@@ -181,7 +195,6 @@ CREATE TABLE IF NOT EXISTS public.firsts_chronicle (
 
 -- ==============================================================================
 -- 7. ROW LEVEL SECURITY (RLS) POLICIES
--- Strict 2-User isolation
 -- ==============================================================================
 
 ALTER TABLE public.couples ENABLE ROW LEVEL SECURITY;
@@ -191,6 +204,7 @@ ALTER TABLE public.savings_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.comfort_coupons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.germany_dream_dates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.balcony_flowers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.germany_milestones ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.love_deck_cards ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sticky_notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.courage_vault_entries ENABLE ROW LEVEL SECURITY;
@@ -209,14 +223,15 @@ CREATE POLICY "savings_logs_access" ON public.savings_logs FOR ALL USING (couple
 CREATE POLICY "comfort_coupons_access" ON public.comfort_coupons FOR ALL USING (couple_id = public.get_current_couple_id());
 CREATE POLICY "germany_dream_dates_access" ON public.germany_dream_dates FOR ALL USING (couple_id = public.get_current_couple_id());
 CREATE POLICY "balcony_flowers_access" ON public.balcony_flowers FOR ALL USING (couple_id = public.get_current_couple_id());
+CREATE POLICY "germany_milestones_access" ON public.germany_milestones FOR ALL USING (couple_id = public.get_current_couple_id());
 CREATE POLICY "love_deck_cards_access" ON public.love_deck_cards FOR ALL USING (couple_id = public.get_current_couple_id());
 CREATE POLICY "sticky_notes_access" ON public.sticky_notes FOR ALL USING (couple_id = public.get_current_couple_id());
 CREATE POLICY "courage_vault_access" ON public.courage_vault_entries FOR ALL USING (couple_id = public.get_current_couple_id());
-CREATE POLICY "daily_capsule_access" ON public.daily_capsule_answers FOR ALL USING (couple_id = public.get_current_couple_id());
+CREATE POLICY "daily_capsule_answers_access" ON public.daily_capsule_answers FOR ALL USING (couple_id = public.get_current_couple_id());
 CREATE POLICY "firsts_chronicle_access" ON public.firsts_chronicle FOR ALL USING (couple_id = public.get_current_couple_id());
 
 -- ==============================================================================
--- 8. SUPABASE REALTIME CONFIGURATION
+-- 8. REALTIME CONFIGURATION
 -- ==============================================================================
 
 ALTER PUBLICATION supabase_realtime ADD TABLE public.comfort_coupons;

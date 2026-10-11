@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS public.savings_goals (
 CREATE TABLE IF NOT EXISTS public.savings_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     couple_id UUID NOT NULL REFERENCES public.couples(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     goal_id UUID REFERENCES public.savings_goals(id) ON DELETE SET NULL,
     amount NUMERIC(12, 2) NOT NULL,
     currency TEXT NOT NULL DEFAULT 'INR' CHECK (currency IN ('INR', 'EUR')),
@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS public.germany_dream_dates (
 CREATE TABLE IF NOT EXISTS public.balcony_flowers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     couple_id UUID NOT NULL REFERENCES public.couples(id) ON DELETE CASCADE,
-    sender_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    sender_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     flower_type TEXT NOT NULL DEFAULT 'rose',
     message TEXT,
     bloomed_at DATE NOT NULL DEFAULT CURRENT_DATE,
@@ -119,25 +119,27 @@ CREATE TABLE IF NOT EXISTS public.germany_milestones (
     target_date DATE NOT NULL,
     order_index INT NOT NULL DEFAULT 0,
     is_completed BOOLEAN NOT NULL DEFAULT false,
-    completed_by UUID REFERENCES auth.users(id),
+    completed_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     completed_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now())
 );
 
+-- author_id is nullable to allow starter template seed cards
 CREATE TABLE IF NOT EXISTS public.love_deck_cards (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     couple_id UUID NOT NULL REFERENCES public.couples(id) ON DELETE CASCADE,
-    author_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    author_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     card_number INT NOT NULL,
     reason_text TEXT NOT NULL,
     revealed_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now())
 );
 
+-- author_id is nullable to allow starter fridge sticky notes
 CREATE TABLE IF NOT EXISTS public.sticky_notes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     couple_id UUID NOT NULL REFERENCES public.couples(id) ON DELETE CASCADE,
-    author_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    author_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     note_text TEXT NOT NULL,
     color_hex TEXT DEFAULT '#FFF3B0',
     is_active BOOLEAN DEFAULT true,
@@ -147,7 +149,7 @@ CREATE TABLE IF NOT EXISTS public.sticky_notes (
 CREATE TABLE IF NOT EXISTS public.courage_vault_entries (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     couple_id UUID NOT NULL REFERENCES public.couples(id) ON DELETE CASCADE,
-    author_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    author_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     title TEXT NOT NULL,
     category TEXT NOT NULL CHECK (category IN (
         'crisis_support',
