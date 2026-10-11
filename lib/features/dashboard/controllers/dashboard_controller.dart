@@ -19,6 +19,11 @@ class DashboardController extends ChangeNotifier with Initializer {
   int flowersBloomed = 14;
 
   bool isSubmitting = false;
+  String? incomingAlertMessage;
+
+  void clearIncomingAlert() {
+    incomingAlertMessage = null;
+  }
 
   // Realtime Live Lists
   List<Map<String, dynamic>> coupleMembers = [];
@@ -50,6 +55,7 @@ class DashboardController extends ChangeNotifier with Initializer {
   String get partnerRole => isRinta ? 'hari' : 'rinta';
   Map<String, dynamic>? get myMember => isRinta ? rintaMember : hariMember;
   Map<String, dynamic>? get partnerMember => isRinta ? hariMember : rintaMember;
+  String get myUserId => isHari ? '29ed297a-c70a-41ae-b3a8-ff25c1ec562c' : '83c2770e-d03d-4985-ba3a-1f7ca5c0b05d';
 
   // Partner Sticky Notes
   Map<String, dynamic>? get latestNoteFromHari {
@@ -240,8 +246,10 @@ class DashboardController extends ChangeNotifier with Initializer {
 
       _realtimeChannel
           ?.onBroadcast(event: 'heartbeat_pulse', callback: (payload) {
+            final sender = (payload['sender'] as String?) ?? partnerName;
             debugPrint('Received heartbeat pulse from partner: $payload');
             isHeartBeating = true;
+            incomingAlertMessage = '❤️ $sender sent you a live Heartbeat & Kiss!';
             notifyListeners();
             VibrationHelper.vibrateHeartbeat();
 
@@ -251,22 +259,37 @@ class DashboardController extends ChangeNotifier with Initializer {
             });
           })
           .onBroadcast(event: 'note_updated', callback: (payload) {
+            final sender = (payload['sender'] as String?) ?? partnerName;
             debugPrint('Partner updated sticky note. Syncing...');
+            incomingAlertMessage = '📌 $sender pinned a new love note for your eyes! ❤️';
             fetchAllData(silent: true);
-            VibrationHelper.vibrateGentle();
+            VibrationHelper.vibrateHeartbeat();
+            notifyListeners();
           })
           .onBroadcast(event: 'mood_updated', callback: (payload) {
             debugPrint('Partner updated mood. Syncing...');
             fetchAllData(silent: true);
           })
           .onBroadcast(event: 'savings_updated', callback: (payload) {
+            final sender = (payload['sender'] as String?) ?? partnerName;
             debugPrint('Partner updated savings. Syncing...');
+            if (payload['amount'] != null) {
+              incomingAlertMessage = '🪙 $sender dropped ₹${(payload['amount'] as num).toInt()} in our Germany fund!';
+              VibrationHelper.vibrateGentle();
+            } else if (payload['new_target'] != null) {
+              incomingAlertMessage = '🎯 $sender updated our Sperrkonto Target to ₹${(payload['new_target'] as num).toInt()}!';
+              VibrationHelper.vibrateGentle();
+            }
             fetchAllData(silent: true);
+            notifyListeners();
           })
           .onBroadcast(event: 'flower_watered', callback: (payload) {
+            final sender = (payload['sender'] as String?) ?? partnerName;
             debugPrint('Partner watered the balcony garden. Syncing...');
+            incomingAlertMessage = '🌸 $sender watered our balcony blooms!';
             fetchAllData(silent: true);
             VibrationHelper.vibrateGentle();
+            notifyListeners();
           })
           .subscribe((status, error) {
             debugPrint('Realtime channel status: $status, error: $error');
@@ -749,6 +772,26 @@ class DashboardController extends ChangeNotifier with Initializer {
       isHeartBeating = false;
       notifyListeners();
     });
+  }
+
+  /// Updates Sperrkonto savings target (e.g. 1350000)
+  Future<void> updateTargetSavingsInr(double newTarget) async {
+    try {
+      targetSavingsInr = newTarget;
+      notifyListeners();
+
+      await _ensureAuth();
+      await _client.from('couples').update({
+        'target_savings_inr': newTarget,
+      }).eq('id', AppConfig.coupleId);
+
+      _realtimeChannel?.sendBroadcastMessage(
+        event: 'savings_updated',
+        payload: {'sender': myName, 'new_target': newTarget},
+      );
+    } catch (e) {
+      debugPrint('Failed to update target savings: $e');
+    }
   }
 
   /// Locks sanctuary and resets local state

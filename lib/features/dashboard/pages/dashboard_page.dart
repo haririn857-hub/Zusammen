@@ -30,11 +30,48 @@ class _DashboardPageState extends State<DashboardPage> {
   void initState() {
     super.initState();
     _controller = DashboardController();
+    _controller.addListener(_handleIncomingAlerts);
     _controller.initialize();
+  }
+
+  void _handleIncomingAlerts() {
+    if (!mounted) return;
+    if (_controller.incomingAlertMessage != null) {
+      final msg = _controller.incomingAlertMessage!;
+      _controller.clearIncomingAlert();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFF221122),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: AppColors.champagneGold, width: 1.2),
+            ),
+            content: Row(
+              children: [
+                const Icon(Icons.favorite, color: AppColors.roseQuartz, size: 22),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    msg,
+                    style: AppTypography.body(color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      });
+    }
   }
 
   @override
   void dispose() {
+    _controller.removeListener(_handleIncomingAlerts);
     _controller.dispose();
     super.dispose();
   }
@@ -75,31 +112,42 @@ class _DashboardPageState extends State<DashboardPage> {
                           children: [
                             // Top App Header
                             Padding(
-                              padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 8),
+                              padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 8),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Row(
-                                    children: [
-                                      const ZusammenLogo(size: 38),
-                                      const SizedBox(width: 10),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Zusammen',
-                                            style: AppTypography.romanticHeadline(fontSize: 22, color: AppColors.champagneGold),
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        const ZusammenLogo(size: 36),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                'Zusammen',
+                                                style: AppTypography.romanticHeadline(fontSize: 20, color: AppColors.champagneGold),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              Text(
+                                                '${_controller.coupleTitle} — Für Immer',
+                                                style: AppTypography.loveScript(fontSize: 14, color: AppColors.warmBlush),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ],
                                           ),
-                                          Text(
-                                            '${_controller.coupleTitle} — Für Immer',
-                                            style: AppTypography.loveScript(fontSize: 16, color: AppColors.warmBlush),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
+                                        ),
+                                      ],
+                                    ),
                                   ),
+                                  const SizedBox(width: 8),
                                   // Live Presence Pill & Partner Avatar Chip
                                   Row(
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
                                       IconButton(
                                         icon: const Icon(Icons.refresh_rounded, size: 20, color: AppColors.champagneGold),

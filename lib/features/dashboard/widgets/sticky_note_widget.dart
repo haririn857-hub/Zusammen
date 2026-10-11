@@ -49,6 +49,24 @@ class StickyNoteWidget extends StatelessWidget {
               ],
             ),
             actions: [
+              if (controller.myNoteToPartner != null && controller.myNoteToPartner!.isNotEmpty)
+                TextButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          final noteObj = controller.stickyNotes.firstWhere(
+                            (n) => n['author_id'] == controller.myUserId,
+                            orElse: () => <String, dynamic>{},
+                          );
+                          if (noteObj.isNotEmpty) {
+                            setDialogState(() => isSubmitting = true);
+                            HapticFeedback.mediumImpact();
+                            await controller.deleteStickyNote(noteObj['id'] as String);
+                          }
+                          if (ctx.mounted) Navigator.pop(ctx);
+                        },
+                  child: const Text('Delete Note', style: TextStyle(color: Colors.redAccent)),
+                ),
               TextButton(
                 onPressed: isSubmitting ? null : () => Navigator.pop(ctx),
                 child: const Text('Cancel', style: TextStyle(color: AppColors.textTertiary)),
@@ -218,26 +236,48 @@ class StickyNoteWidget extends StatelessWidget {
           // Footer: My Outgoing Note to Partner Preview
           if (myNote != null && myNote.isNotEmpty) ...[
             const SizedBox(height: 10),
-            InkWell(
-              onTap: () => _showEditNoteDialog(context),
-              borderRadius: BorderRadius.circular(10),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                child: Row(
-                  children: [
-                    const Icon(Icons.send_rounded, size: 12, color: AppColors.textTertiary),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        'Your note to $partnerName: “$myNote” (tap to edit)',
-                        style: AppTypography.body(fontSize: 11, color: AppColors.textTertiary),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+            Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: () => _showEditNoteDialog(context),
+                    borderRadius: BorderRadius.circular(10),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.send_rounded, size: 12, color: AppColors.textTertiary),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'Your note to $partnerName: “$myNote” (tap to edit)',
+                              style: AppTypography.body(fontSize: 11, color: AppColors.textTertiary),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.roseQuartz),
+                  tooltip: 'Delete my note',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                  onPressed: () async {
+                    HapticFeedback.mediumImpact();
+                    final noteObj = controller.stickyNotes.firstWhere(
+                      (n) => n['author_id'] == controller.myUserId,
+                      orElse: () => <String, dynamic>{},
+                    );
+                    if (noteObj.isNotEmpty) {
+                      await controller.deleteStickyNote(noteObj['id'] as String);
+                    }
+                  },
+                ),
+              ],
             ),
           ],
         ],

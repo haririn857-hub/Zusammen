@@ -344,12 +344,12 @@ class _GermanyRoadmapViewState extends State<GermanyRoadmapView> {
                                       (m['target_date'] as String? ?? '2028').split('T').first,
                                       style: AppTypography.numbers(fontSize: 12, color: AppColors.velvetPink),
                                     ),
-                                    const SizedBox(width: 4),
-                                    InkWell(
-                                      onTap: () {
-                                        widget.controller.deleteGermanyMilestone(m['id'] as String);
-                                      },
-                                      child: const Icon(Icons.delete_outline, size: 16, color: AppColors.textTertiary),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete_outline_rounded, size: 20, color: AppColors.roseQuartz),
+                                      tooltip: 'Delete Milestone',
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                      onPressed: () => _confirmDeleteMilestone(context, m),
                                     ),
                                   ],
                                 ),
@@ -471,8 +471,8 @@ class _GermanyRoadmapViewState extends State<GermanyRoadmapView> {
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.delete_outline, size: 16, color: AppColors.textTertiary),
-                        onPressed: () => widget.controller.deleteDreamDate(d['id'] as String),
+                        icon: const Icon(Icons.delete_outline_rounded, size: 20, color: AppColors.roseQuartz),
+                        onPressed: () => _confirmDeleteDreamDate(context, d),
                         tooltip: 'Delete Dream Date',
                       ),
                     ],
@@ -570,6 +570,72 @@ class _GermanyRoadmapViewState extends State<GermanyRoadmapView> {
                 ],
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeleteMilestone(BuildContext context, Map<String, dynamic> m) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+        title: Text('Delete Milestone?', style: AppTypography.romanticHeadline(fontSize: 18)),
+        content: Text(
+          'Are you sure you want to delete “${m['title']}”? This milestone will be removed from our Germany roadmap.',
+          style: AppTypography.body(color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.textTertiary)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent.withValues(alpha: 0.8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () async {
+              HapticFeedback.mediumImpact();
+              Navigator.pop(ctx);
+              await widget.controller.deleteGermanyMilestone(m['id'] as String);
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeleteDreamDate(BuildContext context, Map<String, dynamic> d) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+        title: Text('Delete Dream Date?', style: AppTypography.romanticHeadline(fontSize: 18)),
+        content: Text(
+          'Remove “${d['title']}” from our Germany dream dates?',
+          style: AppTypography.body(color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.textTertiary)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent.withValues(alpha: 0.8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () async {
+              HapticFeedback.mediumImpact();
+              Navigator.pop(ctx);
+              await widget.controller.deleteDreamDate(d['id'] as String);
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import '../../../core/themes/colors.dart';
@@ -220,19 +221,144 @@ class CountdownHeaderWidget extends StatelessWidget {
                   ),
                 ],
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text('Sperrkonto Target', style: AppTypography.body(fontSize: 11, color: AppColors.textTertiary)),
-                  Text(
-                    currencyFormatter.format(controller.targetSavingsInr),
-                    style: AppTypography.numbers(fontSize: 17, color: AppColors.textPrimary),
+              InkWell(
+                onTap: () => _showEditTargetDialog(context),
+                borderRadius: BorderRadius.circular(10),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('Sperrkonto Target', style: AppTypography.body(fontSize: 11, color: AppColors.textTertiary)),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.edit_outlined, size: 12, color: AppColors.champagneGold),
+                        ],
+                      ),
+                      Text(
+                        currencyFormatter.format(controller.targetSavingsInr),
+                        style: AppTypography.numbers(fontSize: 17, color: AppColors.champagneGold),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  void _showEditTargetDialog(BuildContext context) {
+    final textController = TextEditingController(
+      text: controller.targetSavingsInr > 0 ? controller.targetSavingsInr.toInt().toString() : '1350000',
+    );
+    bool isSubmitting = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: AppColors.surface,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+            title: Row(
+              children: [
+                const Text('🎯', style: TextStyle(fontSize: 20)),
+                const SizedBox(width: 8),
+                Text('Edit Target Fund', style: AppTypography.romanticHeadline(fontSize: 18)),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Set our combined target amount in INR needed for blocked account & visas:',
+                  style: AppTypography.body(fontSize: 12, color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: textController,
+                  keyboardType: TextInputType.number,
+                  style: AppTypography.body(color: Colors.white, fontWeight: FontWeight.bold),
+                  decoration: InputDecoration(
+                    prefixText: '₹ ',
+                    prefixStyle: const TextStyle(color: AppColors.champagneGold, fontWeight: FontWeight.bold),
+                    filled: true,
+                    fillColor: AppColors.surfaceGlass,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _quickTargetChip('₹13.5 Lakhs', 1350000, textController),
+                    _quickTargetChip('₹15 Lakhs', 1500000, textController),
+                    _quickTargetChip('₹18 Lakhs', 1800000, textController),
+                  ],
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: isSubmitting ? null : () => Navigator.pop(ctx),
+                child: const Text('Cancel', style: TextStyle(color: AppColors.textTertiary)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.champagneGold,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                ),
+                onPressed: isSubmitting
+                    ? null
+                    : () async {
+                        final val = double.tryParse(textController.text.trim().replaceAll(',', ''));
+                        if (val != null && val > 0) {
+                          setDialogState(() => isSubmitting = true);
+                          HapticFeedback.mediumImpact();
+                          await controller.updateTargetSavingsInr(val);
+                          if (ctx.mounted) Navigator.pop(ctx);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                behavior: SnackBarBehavior.floating,
+                                content: Text('🎯 Target updated to ₹${val.toInt()}!'),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                child: isSubmitting
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
+                    : const Text('Save Target', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _quickTargetChip(String label, int amount, TextEditingController textController) {
+    return InkWell(
+      onTap: () => textController.text = amount.toString(),
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceGlass,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.borderGlass),
+        ),
+        child: Text(label, style: AppTypography.body(fontSize: 11, color: AppColors.champagneGold)),
       ),
     );
   }

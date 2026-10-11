@@ -63,15 +63,27 @@ class _BudgetPlannerViewState extends State<BudgetPlannerView> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('Our Monthly Savings Plan', style: AppTypography.romanticHeadline(fontSize: 17)),
-                    Container(
-                      padding: const EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.champagneGold.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '~${(monthsNeeded / 12).toStringAsFixed(1)} Years Plan',
-                        style: AppTypography.numbers(fontSize: 12, color: AppColors.champagneGold),
+                    InkWell(
+                      onTap: () => _showEditTargetDialog(context),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.champagneGold.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.champagneGold.withValues(alpha: 0.4)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Target: ${currencyFormatter.format(totalTarget)}',
+                              style: AppTypography.numbers(fontSize: 12, color: AppColors.champagneGold),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.edit_outlined, size: 12, color: AppColors.champagneGold),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -212,7 +224,7 @@ class _BudgetPlannerViewState extends State<BudgetPlannerView> {
                               ),
                               const SizedBox(width: 4),
                               IconButton(
-                                icon: const Icon(Icons.delete_outline, size: 16, color: AppColors.textTertiary),
+                                icon: const Icon(Icons.delete_outline_rounded, size: 20, color: AppColors.roseQuartz),
                                 onPressed: () => widget.controller.deleteSavingsGoal(goal['id'] as String),
                                 tooltip: 'Delete Goal',
                               ),
@@ -368,6 +380,117 @@ class _BudgetPlannerViewState extends State<BudgetPlannerView> {
             ],
           );
         },
+      ),
+    );
+  }
+
+  void _showEditTargetDialog(BuildContext context) {
+    final textController = TextEditingController(
+      text: widget.controller.targetSavingsInr > 0 ? widget.controller.targetSavingsInr.toInt().toString() : '1350000',
+    );
+    bool isSubmitting = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: AppColors.surface,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+            title: Row(
+              children: [
+                const Text('🎯', style: TextStyle(fontSize: 20)),
+                const SizedBox(width: 8),
+                Text('Edit Target Fund', style: AppTypography.romanticHeadline(fontSize: 18)),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Set our combined target amount in INR needed for blocked account & visas:',
+                  style: AppTypography.body(fontSize: 12, color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: textController,
+                  keyboardType: TextInputType.number,
+                  style: AppTypography.body(color: Colors.white, fontWeight: FontWeight.bold),
+                  decoration: InputDecoration(
+                    prefixText: '₹ ',
+                    prefixStyle: const TextStyle(color: AppColors.champagneGold, fontWeight: FontWeight.bold),
+                    filled: true,
+                    fillColor: AppColors.surfaceGlass,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _quickTargetChip('₹13.5 Lakhs', 1350000, textController),
+                    _quickTargetChip('₹15 Lakhs', 1500000, textController),
+                    _quickTargetChip('₹18 Lakhs', 1800000, textController),
+                  ],
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: isSubmitting ? null : () => Navigator.pop(ctx),
+                child: const Text('Cancel', style: TextStyle(color: AppColors.textTertiary)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.champagneGold,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                ),
+                onPressed: isSubmitting
+                    ? null
+                    : () async {
+                        final val = double.tryParse(textController.text.trim().replaceAll(',', ''));
+                        if (val != null && val > 0) {
+                          setDialogState(() => isSubmitting = true);
+                          HapticFeedback.mediumImpact();
+                          await widget.controller.updateTargetSavingsInr(val);
+                          if (ctx.mounted) Navigator.pop(ctx);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                behavior: SnackBarBehavior.floating,
+                                content: Text('🎯 Target updated to ₹${val.toInt()}!'),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                child: isSubmitting
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
+                    : const Text('Save Target', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _quickTargetChip(String label, int amount, TextEditingController textController) {
+    return InkWell(
+      onTap: () => textController.text = amount.toString(),
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceGlass,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.borderGlass),
+        ),
+        child: Text(label, style: AppTypography.body(fontSize: 11, color: AppColors.champagneGold)),
       ),
     );
   }

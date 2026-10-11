@@ -128,13 +128,23 @@ class CoinJarWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Text('🪙', style: TextStyle(fontSize: 20)),
-                  const SizedBox(width: 8),
-                  Text('Our Germany Sacrifice Jar', style: AppTypography.romanticHeadline(fontSize: 18)),
-                ],
+              Expanded(
+                child: Row(
+                  children: [
+                    const Text('🪙', style: TextStyle(fontSize: 20)),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'Our Germany Sacrifice Jar',
+                        style: AppTypography.romanticHeadline(fontSize: 17),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
@@ -142,7 +152,7 @@ class CoinJarWidget extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  '${controller.coinsInJar} Coins Inside',
+                  '${controller.coinsInJar} Coins',
                   style: AppTypography.numbers(fontSize: 12, color: AppColors.champagneGold),
                 ),
               ),
@@ -166,7 +176,7 @@ class CoinJarWidget extends StatelessWidget {
                   emoji: '☕',
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: _buildSacrificeButton(
                   context: context,
@@ -175,7 +185,7 @@ class CoinJarWidget extends StatelessWidget {
                   emoji: '🍱',
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: _buildSacrificeButton(
                   context: context,
@@ -188,19 +198,38 @@ class CoinJarWidget extends StatelessWidget {
           ),
           const SizedBox(height: 14),
 
-          // Custom Deposit Button
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => _showCustomDepositDialog(context),
-              icon: const Icon(Icons.add_circle_outline_rounded, size: 16, color: AppColors.champagneGold),
-              label: Text('Log Salary Deposit or Custom Amount', style: AppTypography.body(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.champagneGold)),
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: AppColors.champagneGold.withValues(alpha: 0.5)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                padding: const EdgeInsetsDirectional.symmetric(vertical: 10),
+          // Custom Deposit & History Row
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _showCustomDepositDialog(context),
+                  icon: const Icon(Icons.add_circle_outline_rounded, size: 16, color: AppColors.champagneGold),
+                  label: Text('Log Deposit', style: AppTypography.body(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.champagneGold)),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: AppColors.champagneGold.withValues(alpha: 0.5)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    padding: const EdgeInsetsDirectional.symmetric(vertical: 10),
+                  ),
+                ),
               ),
-            ),
+              if (controller.savingsLogs.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  onPressed: () => _showManageDepositsSheet(context),
+                  icon: const Icon(Icons.history_rounded, size: 16, color: AppColors.warmBlush),
+                  label: Text(
+                    'History (${controller.savingsLogs.length})',
+                    style: AppTypography.body(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.warmBlush),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: AppColors.warmBlush.withValues(alpha: 0.4)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    padding: const EdgeInsetsDirectional.symmetric(vertical: 10),
+                  ),
+                ),
+              ],
+            ],
           ),
         ],
       ),
@@ -228,6 +257,97 @@ class CoinJarWidget extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void _showManageDepositsSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(20, 20, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Text('🪙', style: TextStyle(fontSize: 20)),
+                      const SizedBox(width: 8),
+                      Text('Recent Coin Deposits', style: AppTypography.romanticHeadline(fontSize: 18)),
+                    ],
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: AppColors.textTertiary),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: controller.savingsLogs.length,
+                  separatorBuilder: (_, _) => const Divider(color: AppColors.borderGlass, height: 16),
+                  itemBuilder: (context, index) {
+                    final log = controller.savingsLogs[index];
+                    final amount = (log['amount'] as num?)?.toDouble() ?? 0.0;
+                    final title = log['title'] as String? ?? 'Sacrifice';
+                    final date = (log['created_at'] as String? ?? '').split('T').first;
+
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                title,
+                                style: AppTypography.body(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                              ),
+                              Text(
+                                date,
+                                style: AppTypography.body(fontSize: 11, color: AppColors.textTertiary),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              '+₹${amount.toInt()}',
+                              style: AppTypography.numbers(fontSize: 14, color: AppColors.champagneGold),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline_rounded, size: 20, color: AppColors.roseQuartz),
+                              tooltip: 'Delete Deposit',
+                              onPressed: () async {
+                                HapticFeedback.mediumImpact();
+                                await controller.deleteSavingLog(log['id'] as String);
+                                if (ctx.mounted) Navigator.pop(ctx);
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
