@@ -6,12 +6,15 @@ class AppConfig {
   static const String partnerGirlPetName = 'Rintamol';
   static const String partnerBoyPetName = 'Hari';
 
+  // Couple ID
+  static const String coupleId = '11111111-1111-1111-1111-111111111111';
+
   // Germany Relocation Target
   static final DateTime targetGermanyDate = DateTime(2028, 10, 1);
   static const double targetSperrkontoEur = 11904.0;
   static const double targetSavingsInr = 1350000.0;
 
-  // Supabase Configuration (Replace with your actual keys from Supabase dashboard)
-  static const String supabaseUrl = 'https://your-supabase-project.supabase.co';
-  static const String supabaseAnonKey = 'your-anon-key';
+  // Supabase Live Credentials
+  static const String supabaseUrl = 'https://cjlllzklugpsvfbeewlv.supabase.co';
+  static const String supabaseAnonKey = 'sb_publishable_whLYeS9aDRqBrZxXrzsZBg_gpT7vtNq';
 }
