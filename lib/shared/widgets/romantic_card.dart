@@ -31,8 +31,8 @@ class RomanticCard extends StatelessWidget {
           child: InkWell(
             onTap: onTap,
             borderRadius: BorderRadius.circular(borderRadius),
-            splashColor: AppColors.roseQuartz.withOpacity(0.12),
-            highlightColor: AppColors.champagneGold.withOpacity(0.06),
+            splashColor: AppColors.roseQuartz.withValues(alpha: 0.12),
+            highlightColor: AppColors.champagneGold.withValues(alpha: 0.06),
             child: Container(
               padding: padding,
               decoration: BoxDecoration(
@@ -44,7 +44,7 @@ class RomanticCard extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.35),
+                    color: Colors.black.withValues(alpha: 0.35),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),

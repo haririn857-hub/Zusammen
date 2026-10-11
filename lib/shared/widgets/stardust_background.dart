@@ -30,7 +30,7 @@ class StardustBackground extends StatelessWidget {
             height: size.width * 0.65,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.roseQuartz.withOpacity(0.18),
+              color: AppColors.roseQuartz.withValues(alpha: 0.18),
             ),
           ),
         ),
@@ -44,7 +44,7 @@ class StardustBackground extends StatelessWidget {
             height: size.width * 0.7,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.champagneGold.withOpacity(0.12),
+              color: AppColors.champagneGold.withValues(alpha: 0.12),
             ),
           ),
         ),
@@ -58,7 +58,7 @@ class StardustBackground extends StatelessWidget {
             height: size.width * 0.6,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.midnightLavender.withOpacity(0.35),
+              color: AppColors.midnightLavender.withValues(alpha: 0.35),
             ),
           ),
         ),

@@ -31,14 +31,14 @@ class RomanticButton extends StatelessWidget {
             color: isSecondary ? AppColors.surfaceGlass : null,
             borderRadius: BorderRadius.circular(30),
             border: Border.all(
-              color: isSecondary ? AppColors.borderGlass : AppColors.champagneGold.withOpacity(0.5),
+              color: isSecondary ? AppColors.borderGlass : AppColors.champagneGold.withValues(alpha: 0.5),
               width: 1.2,
             ),
             boxShadow: isSecondary
                 ? null
                 : [
                     BoxShadow(
-                      color: AppColors.roseQuartz.withOpacity(0.35),
+                      color: AppColors.roseQuartz.withValues(alpha: 0.35),
                       blurRadius: 14,
                       offset: const Offset(0, 4),
                     ),

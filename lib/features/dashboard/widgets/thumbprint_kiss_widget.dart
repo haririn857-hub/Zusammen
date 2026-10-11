@@ -55,7 +55,7 @@ class ThumbprintKissWidget extends StatelessWidget {
                 gradient: AppColors.flightGradient,
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.roseQuartz.withOpacity(controller.isHeartBeating ? 0.7 : 0.35),
+                    color: AppColors.roseQuartz.withValues(alpha: controller.isHeartBeating ? 0.7 : 0.35),
                     blurRadius: controller.isHeartBeating ? 35 : 20,
                     spreadRadius: controller.isHeartBeating ? 8 : 2,
                   ),

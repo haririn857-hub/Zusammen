@@ -62,7 +62,7 @@ class CountdownHeaderWidget extends StatelessWidget {
               border: Border.all(color: AppColors.borderGlow, width: 1.2),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.roseQuartz.withOpacity(0.18),
+                  color: AppColors.roseQuartz.withValues(alpha: 0.18),
                   blurRadius: 18,
                   offset: const Offset(0, 4),
                 ),
@@ -136,7 +136,7 @@ class CountdownHeaderWidget extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.roseQuartz.withOpacity(0.5),
+                        color: AppColors.roseQuartz.withValues(alpha: 0.5),
                         blurRadius: 10,
                         offset: const Offset(0, 2),
                       ),
