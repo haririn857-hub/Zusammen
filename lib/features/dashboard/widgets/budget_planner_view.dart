@@ -204,9 +204,19 @@ class _BudgetPlannerViewState extends State<BudgetPlannerView> {
                               ],
                             ),
                           ),
-                          Text(
-                            '${(progress * 100).toStringAsFixed(0)}%',
-                            style: AppTypography.numbers(fontSize: 15, color: AppColors.champagneGold),
+                          Row(
+                            children: [
+                              Text(
+                                '${(progress * 100).toStringAsFixed(0)}%',
+                                style: AppTypography.numbers(fontSize: 15, color: AppColors.champagneGold),
+                              ),
+                              const SizedBox(width: 4),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline, size: 16, color: AppColors.textTertiary),
+                                onPressed: () => widget.controller.deleteSavingsGoal(goal['id'] as String),
+                                tooltip: 'Delete Goal',
+                              ),
+                            ],
                           ),
                         ],
                       ),

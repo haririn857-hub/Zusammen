@@ -15,6 +15,233 @@ class GermanyRoadmapView extends StatefulWidget {
 }
 
 class _GermanyRoadmapViewState extends State<GermanyRoadmapView> {
+  bool _isDateScratched = false;
+
+  void _showAddMilestoneDialog(BuildContext context) {
+    final titleController = TextEditingController();
+    final descController = TextEditingController();
+    final dateController = TextEditingController(text: '2027-01-01');
+    String selectedCategory = 'language';
+    bool isSubmitting = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: AppColors.surface,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+            title: Text('Add Germany Milestone', style: AppTypography.romanticHeadline(fontSize: 18, color: AppColors.champagneGold)),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: titleController,
+                    style: AppTypography.body(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: 'Milestone Title',
+                      labelStyle: const TextStyle(color: AppColors.champagneGold, fontSize: 13),
+                      hintText: 'e.g. Goethe-Zertifikat B2 Exam',
+                      hintStyle: AppTypography.body(color: AppColors.textTertiary),
+                      filled: true,
+                      fillColor: AppColors.surfaceGlass,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField<String>(
+                    initialValue: selectedCategory,
+                    dropdownColor: AppColors.surface,
+                    style: AppTypography.body(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: 'Category',
+                      labelStyle: const TextStyle(color: AppColors.champagneGold, fontSize: 13),
+                      filled: true,
+                      fillColor: AppColors.surfaceGlass,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                    ),
+                    items: ['language', 'documents', 'finance', 'visa', 'housing', 'flight'].map((cat) {
+                      return DropdownMenuItem(value: cat, child: Text(cat.toUpperCase()));
+                    }).toList(),
+                    onChanged: (val) {
+                      if (val != null) setDialogState(() => selectedCategory = val);
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: dateController,
+                    style: AppTypography.body(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: 'Target Date (YYYY-MM-DD)',
+                      labelStyle: const TextStyle(color: AppColors.champagneGold, fontSize: 13),
+                      hintText: 'e.g. 2027-06-01',
+                      hintStyle: AppTypography.body(color: AppColors.textTertiary),
+                      filled: true,
+                      fillColor: AppColors.surfaceGlass,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: descController,
+                    maxLines: 2,
+                    style: AppTypography.body(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: 'Description / Purpose',
+                      labelStyle: const TextStyle(color: AppColors.champagneGold, fontSize: 13),
+                      hintText: 'Why this milestone brings us closer to Munich...',
+                      hintStyle: AppTypography.body(color: AppColors.textTertiary),
+                      filled: true,
+                      fillColor: AppColors.surfaceGlass,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: isSubmitting ? null : () => Navigator.pop(ctx),
+                child: const Text('Cancel', style: TextStyle(color: AppColors.textTertiary)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.champagneGold,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                ),
+                onPressed: isSubmitting
+                    ? null
+                    : () async {
+                        final title = titleController.text.trim();
+                        final desc = descController.text.trim();
+                        final date = dateController.text.trim();
+                        if (title.isNotEmpty) {
+                          setDialogState(() => isSubmitting = true);
+                          HapticFeedback.mediumImpact();
+                          await widget.controller.addGermanyMilestone(
+                            title: title,
+                            description: desc.isNotEmpty ? desc : 'Step towards Germany',
+                            category: selectedCategory,
+                            targetDate: date.isNotEmpty ? date : '2028-10-01',
+                          );
+                          if (ctx.mounted) Navigator.pop(ctx);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                behavior: SnackBarBehavior.floating,
+                                content: Text('🇩🇪 Added milestone to our Germany roadmap!'),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                child: isSubmitting
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
+                    : const Text('Add Milestone', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  void _showAddDreamDateDialog(BuildContext context) {
+    final titleController = TextEditingController();
+    final locationController = TextEditingController();
+    final seasonController = TextEditingController(text: 'Winter');
+    bool isSubmitting = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: AppColors.surface,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+            title: Text('Add a Dream Date in Germany', style: AppTypography.romanticHeadline(fontSize: 18)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  style: AppTypography.body(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Date Idea (e.g. Picnic at Englischer Garten)',
+                    labelStyle: AppTypography.body(color: AppColors.textTertiary),
+                    filled: true,
+                    fillColor: AppColors.surfaceGlass,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: locationController,
+                  style: AppTypography.body(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Location (e.g. Munich, Bavaria, Black Forest)',
+                    labelStyle: AppTypography.body(color: AppColors.textTertiary),
+                    filled: true,
+                    fillColor: AppColors.surfaceGlass,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: isSubmitting ? null : () => Navigator.pop(ctx),
+                child: const Text('Cancel', style: TextStyle(color: AppColors.textTertiary)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.champagneGold,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                ),
+                onPressed: isSubmitting
+                    ? null
+                    : () async {
+                        final title = titleController.text.trim();
+                        if (title.isNotEmpty) {
+                          setDialogState(() => isSubmitting = true);
+                          HapticFeedback.mediumImpact();
+                          await widget.controller.addDreamDate(
+                            title: title,
+                            description: 'A magical moment together in Germany',
+                            location: locationController.text.trim().isNotEmpty ? locationController.text.trim() : 'Munich',
+                            season: seasonController.text.trim(),
+                          );
+                          if (ctx.mounted) Navigator.pop(ctx);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                behavior: SnackBarBehavior.floating,
+                                content: Text('🏰 Added new fairytale date to our Germany bucket list!'),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                child: isSubmitting
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                      )
+                    : const Text('Add to Bucket List', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final milestones = widget.controller.milestones;
@@ -26,17 +253,34 @@ class _GermanyRoadmapViewState extends State<GermanyRoadmapView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
-          Text(
-            'Deutschland 24-Monate Fahrplan',
-            style: AppTypography.romanticHeadline(fontSize: 24, color: AppColors.champagneGold),
+          // Header with Add Button
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Deutschland 24-Monate Fahrplan',
+                      style: AppTypography.romanticHeadline(fontSize: 22, color: AppColors.champagneGold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'The master roadmap to land together in Germany.',
+                      style: AppTypography.body(fontSize: 13, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: () => _showAddMilestoneDialog(context),
+                icon: const Icon(Icons.add_circle, color: AppColors.champagneGold, size: 28),
+                tooltip: 'Add new milestone',
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            'The step-by-step master roadmap to land together in Germany in October 2028.',
-            style: AppTypography.body(fontSize: 13, color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
 
           // Milestones Timeline
           if (milestones.isNotEmpty)
@@ -94,9 +338,20 @@ class _GermanyRoadmapViewState extends State<GermanyRoadmapView> {
                                   (m['category'] as String? ?? 'Milestone').toUpperCase(),
                                   style: AppTypography.body(fontSize: 11, color: AppColors.champagneGold),
                                 ),
-                                Text(
-                                  m['target_date'] as String? ?? '2028',
-                                  style: AppTypography.numbers(fontSize: 12, color: AppColors.velvetPink),
+                                Row(
+                                  children: [
+                                    Text(
+                                      (m['target_date'] as String? ?? '2028').split('T').first,
+                                      style: AppTypography.numbers(fontSize: 12, color: AppColors.velvetPink),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    InkWell(
+                                      onTap: () {
+                                        widget.controller.deleteGermanyMilestone(m['id'] as String);
+                                      },
+                                      child: const Icon(Icons.delete_outline, size: 16, color: AppColors.textTertiary),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -141,7 +396,24 @@ class _GermanyRoadmapViewState extends State<GermanyRoadmapView> {
           else
             RomanticCard(
               padding: const EdgeInsetsDirectional.all(24),
-              child: Center(child: Text('Loading our sacred Germany roadmap…', style: AppTypography.body())),
+              child: Center(
+                child: Column(
+                  children: [
+                    const Text('🇩🇪', style: TextStyle(fontSize: 32)),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Our 24-Month Roadmap is Ready',
+                      style: AppTypography.romanticHeadline(fontSize: 17, color: AppColors.champagneGold),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Tap "+ Add Milestone" above to begin mapping our journey to Munich! ❤️',
+                      style: AppTypography.body(fontSize: 12, color: AppColors.textTertiary),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
             ),
 
           const SizedBox(height: 24),
@@ -198,7 +470,11 @@ class _GermanyRoadmapViewState extends State<GermanyRoadmapView> {
                           ],
                         ),
                       ),
-                      const Icon(Icons.favorite_rounded, size: 18, color: AppColors.roseQuartz),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, size: 16, color: AppColors.textTertiary),
+                        onPressed: () => widget.controller.deleteDreamDate(d['id'] as String),
+                        tooltip: 'Delete Dream Date',
+                      ),
                     ],
                   ),
                 ),
@@ -218,7 +494,7 @@ class _GermanyRoadmapViewState extends State<GermanyRoadmapView> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Tap the + button above to plan our first romantic spot in Munich or the Black Forest! 🍁',
+                      'Tap + above to add our dream date in Munich, Berlin, or the Alps! 🏔️',
                       style: AppTypography.body(fontSize: 12, color: AppColors.textTertiary),
                       textAlign: TextAlign.center,
                     ),
@@ -231,11 +507,9 @@ class _GermanyRoadmapViewState extends State<GermanyRoadmapView> {
     );
   }
 
-  bool _isDateScratched = false;
-
   Widget _buildScratchOffCard(BuildContext context) {
     return RomanticCard(
-      padding: const EdgeInsetsDirectional.all(18),
+      padding: const EdgeInsetsDirectional.all(16),
       borderColor: AppColors.champagneGold.withValues(alpha: 0.5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -298,99 +572,6 @@ class _GermanyRoadmapViewState extends State<GermanyRoadmapView> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  void _showAddDreamDateDialog(BuildContext context) {
-    final titleController = TextEditingController();
-    final locationController = TextEditingController();
-    final seasonController = TextEditingController(text: 'Winter');
-    bool isSubmitting = false;
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setDialogState) {
-          return AlertDialog(
-            backgroundColor: AppColors.surface,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-            title: Text('Add a Dream Date in Germany', style: AppTypography.romanticHeadline(fontSize: 18)),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: titleController,
-                  style: AppTypography.body(color: Colors.white),
-                  decoration: InputDecoration(
-                    labelText: 'Date Idea (e.g. Picnic at Englischer Garten)',
-                    labelStyle: AppTypography.body(color: AppColors.textTertiary),
-                    filled: true,
-                    fillColor: AppColors.surfaceGlass,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: locationController,
-                  style: AppTypography.body(color: Colors.white),
-                  decoration: InputDecoration(
-                    labelText: 'Location in Germany (e.g. Munich, Berlin, Black Forest)',
-                    labelStyle: AppTypography.body(color: AppColors.textTertiary),
-                    filled: true,
-                    fillColor: AppColors.surfaceGlass,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: isSubmitting ? null : () => Navigator.pop(ctx),
-                child: const Text('Cancel', style: TextStyle(color: AppColors.textTertiary)),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.champagneGold,
-                  foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                ),
-                onPressed: isSubmitting
-                    ? null
-                    : () async {
-                        final title = titleController.text.trim();
-                        if (title.isNotEmpty) {
-                          setDialogState(() => isSubmitting = true);
-                          HapticFeedback.mediumImpact();
-                          await widget.controller.addDreamDate(
-                            title: title,
-                            description: 'A magical moment together in Germany',
-                            location: locationController.text.trim().isNotEmpty ? locationController.text.trim() : 'Munich',
-                            season: seasonController.text.trim(),
-                          );
-                          if (ctx.mounted) Navigator.pop(ctx);
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                behavior: SnackBarBehavior.floating,
-                                content: Text('🏰 Added new fairytale date to our Germany bucket list!'),
-                              ),
-                            );
-                          }
-                        }
-                      },
-                child: isSubmitting
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
-                      )
-                    : const Text('Add to Bucket List', style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-            ],
-          );
-        },
       ),
     );
   }

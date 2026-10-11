@@ -386,9 +386,9 @@ class DashboardController extends ChangeNotifier with Initializer {
 
   Future<void> addDreamDate({
     required String title,
-    required String description,
+    String? description,
     required String location,
-    required String season,
+    String? season,
   }) async {
     if (isSubmitting) return;
     isSubmitting = true;
@@ -399,9 +399,8 @@ class DashboardController extends ChangeNotifier with Initializer {
       final inserted = await _client.from('germany_dream_dates').insert({
         'couple_id': AppConfig.coupleId,
         'title': title,
-        'description': description,
         'location': location,
-        'season': season,
+        'is_achieved': false,
       }).select().single();
 
       dreamDates.add(inserted);
@@ -511,6 +510,203 @@ class DashboardController extends ChangeNotifier with Initializer {
   }
 
 
+
+  Future<void> updateLoveCard(String cardId, String reasonText) async {
+    final index = loveCards.indexWhere((c) => c['id'] == cardId);
+    if (index != -1) {
+      loveCards[index]['reason_text'] = reasonText;
+      notifyListeners();
+    }
+    try {
+      await _ensureAuth();
+      await _client.from('love_deck_cards').update({'reason_text': reasonText}).eq('id', cardId);
+    } catch (e) {
+      debugPrint('Failed to update love card: $e');
+    }
+  }
+
+  Future<void> deleteLoveCard(String cardId) async {
+    loveCards.removeWhere((c) => c['id'] == cardId);
+    notifyListeners();
+    try {
+      await _ensureAuth();
+      await _client.from('love_deck_cards').delete().eq('id', cardId);
+    } catch (e) {
+      debugPrint('Failed to delete love card: $e');
+    }
+  }
+
+  Future<void> addCourageVaultEntry({
+    required String title,
+    required String category,
+    required String content,
+    String? audioPath,
+    DateTime? unlockAt,
+  }) async {
+    if (isSubmitting) return;
+    isSubmitting = true;
+    notifyListeners();
+    try {
+      await _ensureAuth();
+      final userId = _client.auth.currentUser?.id ?? (isHari ? '29ed297a-c70a-41ae-b3a8-ff25c1ec562c' : '83c2770e-d03d-4985-ba3a-1f7ca5c0b05d');
+      final inserted = await _client.from('courage_vault_entries').insert({
+        'couple_id': AppConfig.coupleId,
+        'author_id': userId,
+        'category': category,
+        'title': title,
+        'content_encrypted': content,
+        'audio_storage_path': audioPath,
+        'unlock_at': unlockAt?.toIso8601String(),
+      }).select().single();
+      courageVaultEntries.add(inserted);
+    } catch (e) {
+      debugPrint('Failed to add vault entry: $e');
+    } finally {
+      isSubmitting = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteCourageVaultEntry(String entryId) async {
+    courageVaultEntries.removeWhere((e) => e['id'] == entryId);
+    notifyListeners();
+    try {
+      await _ensureAuth();
+      await _client.from('courage_vault_entries').delete().eq('id', entryId);
+    } catch (e) {
+      debugPrint('Failed to delete vault entry: $e');
+    }
+  }
+
+  Future<void> addGermanyMilestone({
+    required String title,
+    required String description,
+    required String category,
+    required String targetDate,
+  }) async {
+    if (isSubmitting) return;
+    isSubmitting = true;
+    notifyListeners();
+    try {
+      await _ensureAuth();
+      final inserted = await _client.from('germany_milestones').insert({
+        'couple_id': AppConfig.coupleId,
+        'title': title,
+        'description': description,
+        'category': category,
+        'target_date': targetDate,
+        'order_index': milestones.length + 1,
+        'is_completed': false,
+      }).select().single();
+      milestones.add(inserted);
+    } catch (e) {
+      debugPrint('Failed to add milestone: $e');
+    } finally {
+      isSubmitting = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteGermanyMilestone(String milestoneId) async {
+    milestones.removeWhere((m) => m['id'] == milestoneId);
+    notifyListeners();
+    try {
+      await _ensureAuth();
+      await _client.from('germany_milestones').delete().eq('id', milestoneId);
+    } catch (e) {
+      debugPrint('Failed to delete milestone: $e');
+    }
+  }
+
+  Future<void> deleteDreamDate(String dateId) async {
+    dreamDates.removeWhere((d) => d['id'] == dateId);
+    notifyListeners();
+    try {
+      await _ensureAuth();
+      await _client.from('germany_dream_dates').delete().eq('id', dateId);
+    } catch (e) {
+      debugPrint('Failed to delete dream date: $e');
+    }
+  }
+
+  Future<void> addComfortCoupon({
+    required String title,
+    required String description,
+    required String rewardIcon,
+  }) async {
+    if (isSubmitting) return;
+    isSubmitting = true;
+    notifyListeners();
+    try {
+      await _ensureAuth();
+      final inserted = await _client.from('comfort_coupons').insert({
+        'couple_id': AppConfig.coupleId,
+        'title': title,
+        'description': description,
+        'icon_name': rewardIcon,
+        'is_redeemed': false,
+      }).select().single();
+      coupons.add(inserted);
+    } catch (e) {
+      debugPrint('Failed to add coupon: $e');
+    } finally {
+      isSubmitting = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteComfortCoupon(String couponId) async {
+    coupons.removeWhere((c) => c['id'] == couponId);
+    notifyListeners();
+    try {
+      await _ensureAuth();
+      await _client.from('comfort_coupons').delete().eq('id', couponId);
+    } catch (e) {
+      debugPrint('Failed to delete coupon: $e');
+    }
+  }
+
+  Future<void> deleteSavingsGoal(String goalId) async {
+    savingsGoals.removeWhere((g) => g['id'] == goalId);
+    notifyListeners();
+    try {
+      await _ensureAuth();
+      await _client.from('savings_goals').delete().eq('id', goalId);
+    } catch (e) {
+      debugPrint('Failed to delete goal: $e');
+    }
+  }
+
+  Future<void> deleteSavingLog(String logId) async {
+    final index = savingsLogs.indexWhere((l) => l['id'] == logId);
+    if (index != -1) {
+      final amount = (savingsLogs[index]['amount'] as num?)?.toDouble() ?? 0.0;
+      currentSavedInr -= amount;
+      savingsLogs.removeAt(index);
+      notifyListeners();
+    }
+    try {
+      await _ensureAuth();
+      await _client.from('savings_logs').delete().eq('id', logId);
+    } catch (e) {
+      debugPrint('Failed to delete savings log: $e');
+    }
+  }
+
+  Future<void> deleteStickyNote(String noteId) async {
+    stickyNotes.removeWhere((n) => n['id'] == noteId);
+    notifyListeners();
+    try {
+      await _ensureAuth();
+      await _client.from('sticky_notes').delete().eq('id', noteId);
+      _realtimeChannel?.sendBroadcastMessage(
+        event: 'note_updated',
+        payload: {'sender': myName},
+      );
+    } catch (e) {
+      debugPrint('Failed to delete note: $e');
+    }
+  }
 
   Future<void> waterGardenAndSendFlower() async {
     try {

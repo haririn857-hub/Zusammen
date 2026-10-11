@@ -115,16 +115,23 @@ class StickyNoteWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Text('📌', style: TextStyle(fontSize: 18)),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Note from $partnerName for You',
-                    style: AppTypography.romanticHeadline(fontSize: 16, color: AppColors.champagneGold),
-                  ),
-                ],
+              Expanded(
+                child: Row(
+                  children: [
+                    const Text('📌', style: TextStyle(fontSize: 18)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Note from $partnerName for You',
+                        style: AppTypography.romanticHeadline(fontSize: 16, color: AppColors.champagneGold),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               InkWell(
                 onTap: () => _showEditNoteDialog(context),
                 borderRadius: BorderRadius.circular(12),
@@ -136,6 +143,7 @@ class StickyNoteWidget extends StatelessWidget {
                     border: Border.all(color: AppColors.roseQuartz.withValues(alpha: 0.3)),
                   ),
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.edit_outlined, size: 13, color: AppColors.roseQuartz),
                       const SizedBox(width: 4),

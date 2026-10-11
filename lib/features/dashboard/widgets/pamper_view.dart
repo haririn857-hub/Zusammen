@@ -43,12 +43,12 @@ class _PamperViewState extends State<PamperView> {
   @override
   Widget build(BuildContext context) {
     final rintaName = widget.controller.rintaName;
-    final hariName = widget.controller.hariName;
 
     if (_currentFortune.isEmpty) {
       final dbFortunes = widget.controller.fortuneCompliments;
       _currentFortune = dbFortunes.isNotEmpty
-          ? (dbFortunes.first['content_encrypted'] as String? ?? 'You are loved beyond measure.')
+          ? (dbFortunes.first['content_encrypted'] as String? ??
+                'You are loved beyond measure.')
           : '“Scientifically proven: $rintaName has the sweetest, most contagious laugh in Kerala.”';
     }
 
@@ -61,12 +61,18 @@ class _PamperViewState extends State<PamperView> {
           // Header
           Text(
             'Verwöhnen (Pamper My Queen)',
-            style: AppTypography.romanticHeadline(fontSize: 24, color: AppColors.roseQuartz),
+            style: AppTypography.romanticHeadline(
+              fontSize: 24,
+              color: AppColors.roseQuartz,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             'Everything to make $rintaName smile, laugh, and feel loved every single day.',
-            style: AppTypography.body(fontSize: 13, color: AppColors.textSecondary),
+            style: AppTypography.body(
+              fontSize: 13,
+              color: AppColors.textSecondary,
+            ),
           ),
           const SizedBox(height: 20),
 
@@ -79,8 +85,17 @@ class _PamperViewState extends State<PamperView> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Golden Fortune Cookie', style: AppTypography.romanticHeadline(fontSize: 17)),
-                    Text('Tap to Crack', style: AppTypography.body(fontSize: 11, color: AppColors.champagneGold)),
+                    Text(
+                      'Golden Fortune Cookie',
+                      style: AppTypography.romanticHeadline(fontSize: 17),
+                    ),
+                    Text(
+                      'Tap to Crack',
+                      style: AppTypography.body(
+                        fontSize: 11,
+                        color: AppColors.champagneGold,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -92,7 +107,10 @@ class _PamperViewState extends State<PamperView> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: AppColors.champagneGold.withValues(alpha: 0.18),
-                      border: Border.all(color: AppColors.champagneGold, width: 1.5),
+                      border: Border.all(
+                        color: AppColors.champagneGold,
+                        width: 1.5,
+                      ),
                     ),
                     child: Center(
                       child: Text(
@@ -105,13 +123,22 @@ class _PamperViewState extends State<PamperView> {
                 const SizedBox(height: 16),
                 Text(
                   _currentFortune,
-                  style: AppTypography.loveScript(fontSize: 18, color: AppColors.warmBlush),
+                  style: AppTypography.loveScript(
+                    fontSize: 18,
+                    color: AppColors.warmBlush,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 TextButton(
                   onPressed: _crackCookie,
-                  child: const Text('Crack Another Cookie 🥠', style: TextStyle(fontSize: 12, color: AppColors.champagneGold)),
+                  child: const Text(
+                    'Crack Another Cookie 🥠',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.champagneGold,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -132,28 +159,53 @@ class _PamperViewState extends State<PamperView> {
                       children: [
                         const Text('🌸', style: TextStyle(fontSize: 20)),
                         const SizedBox(width: 8),
-                        Text('Our Balcony Garden', style: AppTypography.romanticHeadline(fontSize: 17)),
+                        Text(
+                          'Our Balcony Garden',
+                          style: AppTypography.romanticHeadline(fontSize: 17),
+                        ),
                       ],
                     ),
                     Text(
                       '${widget.controller.flowersBloomed} Blooms',
-                      style: AppTypography.numbers(fontSize: 13, color: AppColors.roseQuartz),
+                      style: AppTypography.numbers(
+                        fontSize: 13,
+                        color: AppColors.roseQuartz,
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Every time we save money or send flowers, a new bloom opens in our future Munich balcony.',
-                  style: AppTypography.body(fontSize: 12, color: AppColors.textTertiary),
+                  style: AppTypography.body(
+                    fontSize: 12,
+                    color: AppColors.textTertiary,
+                  ),
                 ),
                 const SizedBox(height: 14),
                 const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Text('🌹\nRose', textAlign: TextAlign.center, style: TextStyle(fontSize: 22)),
-                    Text('🌼\nJasmine', textAlign: TextAlign.center, style: TextStyle(fontSize: 22)),
-                    Text('🌻\nSunflower', textAlign: TextAlign.center, style: TextStyle(fontSize: 22)),
-                    Text('🌺\nEdelweiss', textAlign: TextAlign.center, style: TextStyle(fontSize: 22)),
+                    Text(
+                      '🌹\nRose',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 22),
+                    ),
+                    Text(
+                      '🌼\nJasmine',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 22),
+                    ),
+                    Text(
+                      '🌻\nSunflower',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 22),
+                    ),
+                    Text(
+                      '🌺\nEdelweiss',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 22),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 14),
@@ -167,76 +219,34 @@ class _PamperViewState extends State<PamperView> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             behavior: SnackBarBehavior.floating,
-                            content: Text('🌹 Sent a fresh morning bloom to $rintaName!'),
+                            content: Text(
+                              '🌹 Sent a fresh morning bloom to $rintaName!',
+                            ),
                           ),
                         );
                       }
                     },
-                    icon: const Icon(Icons.water_drop_rounded, size: 16, color: Colors.white),
-                    label: Text('Send Morning Bloom to $rintaName', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                    icon: const Icon(
+                      Icons.water_drop_rounded,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                    label: Text(
+                      'Send Morning Bloom to $rintaName',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.roseQuartz,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      padding: const EdgeInsetsDirectional.symmetric(vertical: 12),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Emergency Hand-Holding Button
-          RomanticCard(
-            padding: const EdgeInsetsDirectional.all(20),
-            borderColor: Colors.redAccent.withValues(alpha: 0.4),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Text('🛡️', style: TextStyle(fontSize: 20)),
-                    const SizedBox(width: 8),
-                    Text('The Courage Shield', style: AppTypography.romanticHeadline(fontSize: 17, color: Colors.white)),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'When family arguments or religious tension feel too loud, tap this button.',
-                  style: AppTypography.body(fontSize: 12, color: AppColors.textTertiary),
-                ),
-                const SizedBox(height: 14),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      HapticFeedback.heavyImpact();
-                      widget.controller.triggerHeartPulse();
-                      final isRinta = widget.controller.isRinta;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          behavior: SnackBarBehavior.floating,
-                          backgroundColor: const Color(0xFF2E1A29),
-                          content: Text(
-                            isRinta
-                                ? '🫂 “$hariName is holding your hand right now. Breathe deeply, my love. We are going to make it.”'
-                                : '🫂 You sent your warm strength to $rintaName. Her heart feels you beside her right now ❤️',
-                          ),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.favorite, size: 18, color: Colors.white),
-                    label: Text(
-                      widget.controller.isRinta
-                          ? '$hariName, Hold My Hand Right Now'
-                          : 'Hold $rintaName’s Hand Right Now',
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF9E2A2B),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      padding: const EdgeInsetsDirectional.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      padding: const EdgeInsetsDirectional.symmetric(
+                        vertical: 12,
+                      ),
                     ),
                   ),
                 ),
