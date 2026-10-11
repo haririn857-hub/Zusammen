@@ -77,11 +77,13 @@ class DashboardController extends ChangeNotifier with Initializer {
     await SupabaseService().ensureAuthenticated();
   }
 
-  Future<void> fetchAllData() async {
+  Future<void> fetchAllData({bool silent = false}) async {
     try {
-      isLoading = true;
-      errorMessage = null;
-      notifyListeners();
+      if (!silent && coupleData == null) {
+        isLoading = true;
+        errorMessage = null;
+        notifyListeners();
+      }
 
       await _ensureAuth();
 
@@ -197,7 +199,8 @@ class DashboardController extends ChangeNotifier with Initializer {
       _realtimeChannel?.onBroadcast(event: 'heartbeat_pulse', callback: (payload) {
         isHeartBeating = true;
         notifyListeners();
-        Future.delayed(const Duration(seconds: 3), () {
+
+        Future.delayed(const Duration(seconds: 4), () {
           isHeartBeating = false;
           notifyListeners();
         });
@@ -210,14 +213,31 @@ class DashboardController extends ChangeNotifier with Initializer {
   }
 
   // ==============================================================================
-  // ACTIONS (With proper user_id & couple authentication)
+  // OPTIMISTIC ACTIONS (0ms Instant Local Update + Silent Background DB Sync)
   // ==============================================================================
 
   Future<void> addSavingLog({required double amount, required String title, String? note}) async {
+    // 1. Instant Local State Update (0ms lag, zero loading spinner)
+    final tempId = 'temp-${DateTime.now().millisecondsSinceEpoch}';
+    final optimisticLog = {
+      'id': tempId,
+      'couple_id': AppConfig.coupleId,
+      'amount': amount,
+      'title': title,
+      'note': note ?? 'Micro-sacrifice coin added with love',
+      'currency': 'INR',
+      'log_type': 'micro_sacrifice_coin',
+      'created_at': DateTime.now().toIso8601String(),
+    };
+    savingsLogs.insert(0, optimisticLog);
+    currentSavedInr += amount;
+    flowersBloomed += 1;
+    notifyListeners();
+
+    // 2. Silent Background Database Synchronization
     try {
       await _ensureAuth();
       final userId = _client.auth.currentUser?.id ?? '29ed297a-c70a-41ae-b3a8-ff25c1ec562c';
-
       final newLog = {
         'couple_id': AppConfig.coupleId,
         'user_id': userId,
@@ -229,96 +249,212 @@ class DashboardController extends ChangeNotifier with Initializer {
       };
 
       await _client.from('savings_logs').insert(newLog);
-
-      // Increment flower count in couple record
-      flowersBloomed += 1;
       await _client.from('couples').update({'flowers_bloomed': flowersBloomed}).eq('id', AppConfig.coupleId);
 
-      await fetchAllData();
+      // Silent sync in background without showing loading indicator
+      await fetchAllData(silent: true);
     } catch (e) {
-      debugPrint('Failed to add saving: $e');
-      rethrow;
+      debugPrint('Silent sync error on addSavingLog: $e');
+    }
+  }
+
+  Future<void> updateTargetGermanyDate(DateTime newDate) async {
+    // 1. Instant Local Update
+    final dateStr = '${newDate.year.toString().padLeft(4, '0')}-${newDate.month.toString().padLeft(2, '0')}-${newDate.day.toString().padLeft(2, '0')}';
+    coupleData ??= {};
+    coupleData!['target_germany_date'] = dateStr;
+    notifyListeners();
+
+    // 2. Background Sync
+    try {
+      await _ensureAuth();
+      await _client.from('couples').update({'target_germany_date': dateStr}).eq('id', AppConfig.coupleId);
+      await fetchAllData(silent: true);
+    } catch (e) {
+      debugPrint('Failed to update target date: $e');
+    }
+  }
+
+  Future<void> updatePartnerMood(String partnerRole, String newMood) async {
+    // 1. Instant Local Update
+    final index = coupleMembers.indexWhere((m) => m['partner_role'] == partnerRole);
+    if (index != -1) {
+      coupleMembers[index]['current_mood'] = newMood;
+      notifyListeners();
+    }
+
+    // 2. Background Sync
+    try {
+      await _ensureAuth();
+      await _client.from('couple_members').update({
+        'current_mood': newMood,
+        'last_active': DateTime.now().toIso8601String(),
+      }).eq('couple_id', AppConfig.coupleId).eq('partner_role', partnerRole);
+    } catch (e) {
+      debugPrint('Failed to update partner mood: $e');
+    }
+  }
+
+  Future<void> addSavingsGoal({
+    required String title,
+    required double targetAmount,
+    required String currency,
+    required String category,
+  }) async {
+    // 1. Instant Local Update
+    final tempGoal = {
+      'id': 'temp-${DateTime.now().millisecondsSinceEpoch}',
+      'couple_id': AppConfig.coupleId,
+      'title': title,
+      'target_amount': targetAmount,
+      'currency': currency,
+      'category': category,
+      'priority': savingsGoals.length + 1,
+      'is_completed': false,
+    };
+    savingsGoals.add(tempGoal);
+    notifyListeners();
+
+    // 2. Background Sync
+    try {
+      await _ensureAuth();
+      await _client.from('savings_goals').insert({
+        'couple_id': AppConfig.coupleId,
+        'title': title,
+        'target_amount': targetAmount,
+        'currency': currency,
+        'category': category,
+        'priority': savingsGoals.length,
+      });
+      await fetchAllData(silent: true);
+    } catch (e) {
+      debugPrint('Failed to add savings goal: $e');
+    }
+  }
+
+  Future<void> addDreamDate({
+    required String title,
+    required String description,
+    required String location,
+    required String season,
+  }) async {
+    // 1. Instant Local Update
+    final tempDate = {
+      'id': 'temp-${DateTime.now().millisecondsSinceEpoch}',
+      'couple_id': AppConfig.coupleId,
+      'title': title,
+      'description': description,
+      'location': location,
+      'season': season,
+      'is_completed': false,
+    };
+    dreamDates.add(tempDate);
+    notifyListeners();
+
+    // 2. Background Sync
+    try {
+      await _ensureAuth();
+      await _client.from('germany_dream_dates').insert({
+        'couple_id': AppConfig.coupleId,
+        'title': title,
+        'description': description,
+        'location': location,
+        'season': season,
+      });
+      await fetchAllData(silent: true);
+    } catch (e) {
+      debugPrint('Failed to add dream date: $e');
     }
   }
 
   Future<void> redeemCoupon(String couponId) async {
+    // 1. Instant Local Update
+    final index = coupons.indexWhere((c) => c['id'] == couponId);
+    if (index != -1) {
+      coupons[index]['is_redeemed'] = true;
+      notifyListeners();
+    }
+
+    // 2. Background Sync
     try {
       await _ensureAuth();
       await _client.from('comfort_coupons').update({
         'is_redeemed': true,
         'redeemed_at': DateTime.now().toIso8601String(),
       }).eq('id', couponId);
-
-      final index = coupons.indexWhere((c) => c['id'] == couponId);
-      if (index != -1) {
-        coupons[index]['is_redeemed'] = true;
-        notifyListeners();
-      }
     } catch (e) {
       debugPrint('Failed to redeem coupon: $e');
-      rethrow;
     }
   }
 
   Future<void> toggleMilestone(String milestoneId, bool isCompleted) async {
+    // 1. Instant Local Update
+    final index = milestones.indexWhere((m) => m['id'] == milestoneId);
+    if (index != -1) {
+      milestones[index]['is_completed'] = isCompleted;
+      notifyListeners();
+    }
+
+    // 2. Background Sync
     try {
       await _ensureAuth();
       await _client.from('germany_milestones').update({
         'is_completed': isCompleted,
         'completed_at': isCompleted ? DateTime.now().toIso8601String() : null,
       }).eq('id', milestoneId);
-
-      final index = milestones.indexWhere((m) => m['id'] == milestoneId);
-      if (index != -1) {
-        milestones[index]['is_completed'] = isCompleted;
-        notifyListeners();
-      }
     } catch (e) {
       debugPrint('Failed to toggle milestone: $e');
-      rethrow;
     }
   }
 
-  Future<void> postStickyNote(String newNote) async {
+  Future<void> postStickyNote(String noteText) async {
+    // 1. Instant Local Update
+    morningNote = noteText;
+    notifyListeners();
+
+    // 2. Background Sync
     try {
       await _ensureAuth();
       final userId = _client.auth.currentUser?.id ?? '29ed297a-c70a-41ae-b3a8-ff25c1ec562c';
-
       await _client.from('sticky_notes').update({'is_active': false}).eq('couple_id', AppConfig.coupleId);
 
       await _client.from('sticky_notes').insert({
         'couple_id': AppConfig.coupleId,
         'author_id': userId,
-        'note_text': newNote,
-        'color_hex': '#FFF3B0',
+        'note_text': noteText,
+        'color_hex': '#FFE4E6',
         'is_active': true,
       });
-
-      morningNote = newNote;
-      notifyListeners();
     } catch (e) {
-      debugPrint('Failed to post sticky note: $e');
-      rethrow;
+      debugPrint('Failed to post note: $e');
     }
   }
 
   Future<void> addLoveCard(String reasonText) async {
+    // 1. Instant Local Update
+    final newCardNumber = loveCards.length + 1;
+    final tempCard = {
+      'id': 'temp-${DateTime.now().millisecondsSinceEpoch}',
+      'couple_id': AppConfig.coupleId,
+      'card_number': newCardNumber,
+      'reason_text': reasonText,
+      'created_at': DateTime.now().toIso8601String(),
+    };
+    loveCards.add(tempCard);
+    notifyListeners();
+
+    // 2. Background Sync
     try {
       await _ensureAuth();
       final userId = _client.auth.currentUser?.id ?? '29ed297a-c70a-41ae-b3a8-ff25c1ec562c';
-      final newCardNumber = loveCards.length + 1;
-
       await _client.from('love_deck_cards').insert({
         'couple_id': AppConfig.coupleId,
         'author_id': userId,
         'card_number': newCardNumber,
         'reason_text': reasonText,
       });
-
-      await fetchAllData();
     } catch (e) {
       debugPrint('Failed to add love card: $e');
-      rethrow;
     }
   }
 

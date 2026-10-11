@@ -13,6 +13,7 @@ import '../widgets/budget_planner_view.dart';
 import '../widgets/love_deck_view.dart';
 import '../widgets/germany_roadmap_view.dart';
 import '../widgets/pamper_view.dart';
+import '../widgets/daily_capsule_widget.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -50,7 +51,7 @@ class _DashboardPageState extends State<DashboardPage> {
               child: AnimatedBuilder(
                 animation: _controller,
                 builder: (context, _) {
-                  if (_controller.isLoading) {
+                  if (_controller.isLoading && _controller.coupleData == null) {
                     return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -200,6 +201,10 @@ class _DashboardPageState extends State<DashboardPage> {
 
               // 5. Live Love Touch & Heartbeat Pulse
               ThumbprintKissWidget(controller: _controller),
+              const SizedBox(height: 18),
+
+              // 6. Daily Love Capsule (Our Shared Morning Reflection)
+              DailyCapsuleWidget(controller: _controller),
             ]),
           ),
         ),

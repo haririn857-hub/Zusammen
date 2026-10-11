@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../../core/themes/colors.dart';
 import '../../../core/themes/typography.dart';
@@ -145,9 +146,19 @@ class _BudgetPlannerViewState extends State<BudgetPlannerView> {
           ),
 
           const SizedBox(height: 24),
-          Text(
-            'Target Budget Breakdown',
-            style: AppTypography.romanticHeadline(fontSize: 19, color: AppColors.textPrimary),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Target Budget Breakdown',
+                style: AppTypography.romanticHeadline(fontSize: 19, color: AppColors.textPrimary),
+              ),
+              IconButton(
+                onPressed: () => _showAddGoalDialog(context),
+                icon: const Icon(Icons.add_circle_outline, color: AppColors.champagneGold, size: 26),
+                tooltip: 'Add new savings goal',
+              ),
+            ],
           ),
           const SizedBox(height: 12),
 
@@ -230,6 +241,77 @@ class _BudgetPlannerViewState extends State<BudgetPlannerView> {
                 child: Text('Loading our savings goals from database…', style: AppTypography.body()),
               ),
             ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddGoalDialog(BuildContext context) {
+    final titleController = TextEditingController();
+    final targetController = TextEditingController();
+    String selectedCurrency = 'INR';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Text('Add Target Savings Goal', style: AppTypography.romanticHeadline(fontSize: 18)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: titleController,
+              style: AppTypography.body(color: Colors.white),
+              decoration: InputDecoration(
+                labelText: 'Goal Title (e.g. Flight Tickets, Visa Fees)',
+                labelStyle: AppTypography.body(color: AppColors.textTertiary),
+                filled: true,
+                fillColor: AppColors.surfaceGlass,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: targetController,
+              keyboardType: TextInputType.number,
+              style: AppTypography.numbers(color: AppColors.champagneGold),
+              decoration: InputDecoration(
+                labelText: 'Target Amount ($selectedCurrency)',
+                labelStyle: AppTypography.body(color: AppColors.textTertiary),
+                filled: true,
+                fillColor: AppColors.surfaceGlass,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: AppColors.textTertiary))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.champagneGold, foregroundColor: Colors.black),
+            onPressed: () async {
+              final target = double.tryParse(targetController.text.trim());
+              if (titleController.text.trim().isNotEmpty && target != null && target > 0) {
+                HapticFeedback.mediumImpact();
+                await widget.controller.addSavingsGoal(
+                  title: titleController.text.trim(),
+                  targetAmount: target,
+                  currency: selectedCurrency,
+                  category: 'emergency_fund',
+                );
+                if (ctx.mounted) Navigator.pop(ctx);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      behavior: SnackBarBehavior.floating,
+                      content: Text('🎯 New savings goal added to our Germany plan!'),
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Add Goal', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
         ],
       ),
     );

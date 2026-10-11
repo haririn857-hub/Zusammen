@@ -146,42 +146,209 @@ class _GermanyRoadmapViewState extends State<GermanyRoadmapView> {
 
           const SizedBox(height: 24),
 
-          // Fairytale Dates in Germany
-          Text(
-            'Our Germany Fairytale Dates',
-            style: AppTypography.romanticHeadline(fontSize: 19, color: AppColors.textPrimary),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Magical moments waiting for us once we land in Germany.',
-            style: AppTypography.body(fontSize: 12, color: AppColors.textTertiary),
-          ),
-          const SizedBox(height: 14),
-
-          ...dreamDates.map((d) {
-            return Padding(
-              padding: const EdgeInsetsDirectional.only(bottom: 10.0),
-              child: RomanticCard(
-                padding: const EdgeInsetsDirectional.all(14.0),
-                child: Row(
+          // Fairytale Dates in Germany Header + Add Button
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('🏰', style: TextStyle(fontSize: 24)),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(d['title'] as String? ?? '', style: AppTypography.body(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-                          Text(d['location'] as String? ?? 'Germany', style: AppTypography.body(fontSize: 11, color: AppColors.champagneGold)),
-                        ],
-                      ),
+                    Text(
+                      'Our Germany Fairytale Dates',
+                      style: AppTypography.romanticHeadline(fontSize: 19, color: AppColors.textPrimary),
                     ),
-                    const Icon(Icons.favorite_rounded, size: 18, color: AppColors.roseQuartz),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Magical moments waiting for us once we land.',
+                      style: AppTypography.body(fontSize: 12, color: AppColors.textTertiary),
+                    ),
                   ],
                 ),
               ),
-            );
-          }),
+              IconButton(
+                onPressed: () => _showAddDreamDateDialog(context),
+                icon: const Icon(Icons.add_circle_outline, color: AppColors.champagneGold, size: 28),
+                tooltip: 'Add our own dream date',
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Interactive Golden Scratch-Off Card
+          _buildScratchOffCard(context),
+          const SizedBox(height: 14),
+
+          if (dreamDates.isNotEmpty)
+            ...dreamDates.map((d) {
+              return Padding(
+                padding: const EdgeInsetsDirectional.only(bottom: 10.0),
+                child: RomanticCard(
+                  padding: const EdgeInsetsDirectional.all(14.0),
+                  child: Row(
+                    children: [
+                      const Text('🏰', style: TextStyle(fontSize: 24)),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(d['title'] as String? ?? '', style: AppTypography.body(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                            Text('${d['location'] ?? 'Germany'} • ${d['season'] ?? 'All Seasons'}', style: AppTypography.body(fontSize: 11, color: AppColors.champagneGold)),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.favorite_rounded, size: 18, color: AppColors.roseQuartz),
+                    ],
+                  ),
+                ),
+              );
+            })
+          else
+            RomanticCard(
+              padding: const EdgeInsets.all(16),
+              child: Center(child: Text('Loading dream dates…', style: AppTypography.body())),
+            ),
+        ],
+      ),
+    );
+  }
+
+  bool _isDateScratched = false;
+
+  Widget _buildScratchOffCard(BuildContext context) {
+    return RomanticCard(
+      padding: const EdgeInsetsDirectional.all(18),
+      borderColor: AppColors.champagneGold.withValues(alpha: 0.5),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('✨ Mystery Date Scratch Card', style: AppTypography.romanticHeadline(fontSize: 16, color: AppColors.champagneGold)),
+              Text(_isDateScratched ? 'Revealed 💖' : 'Tap to Scratch', style: AppTypography.body(fontSize: 11, color: AppColors.roseQuartz)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          InkWell(
+            onTap: () {
+              HapticFeedback.heavyImpact();
+              setState(() => _isDateScratched = !_isDateScratched);
+            },
+            borderRadius: BorderRadius.circular(16),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 350),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                gradient: _isDateScratched
+                    ? const LinearGradient(colors: [Color(0xFF2C1625), Color(0xFF1E1428)])
+                    : const LinearGradient(colors: [Color(0xFFD4AF37), Color(0xFFAA7C11)]),
+                boxShadow: [
+                  BoxShadow(
+                    color: (_isDateScratched ? AppColors.roseQuartz : AppColors.champagneGold).withValues(alpha: 0.25),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    _isDateScratched ? '🎄 Munich Christmas Glühwein Walk' : '🎁 SECRET DATE SURPRISE',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: _isDateScratched ? Colors.white : Colors.black87,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    _isDateScratched
+                        ? 'Holding hands in Marienplatz under snowy fairy lights, sipping hot cinnamon cocoa with your forever love.'
+                        : 'Tap to scratch off golden foil & reveal our secret date',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: _isDateScratched ? AppColors.warmBlush : Colors.black54,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddDreamDateDialog(BuildContext context) {
+    final titleController = TextEditingController();
+    final locationController = TextEditingController();
+    final seasonController = TextEditingController(text: 'Winter');
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Text('Add a Dream Date in Germany', style: AppTypography.romanticHeadline(fontSize: 18)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: titleController,
+              style: AppTypography.body(color: Colors.white),
+              decoration: InputDecoration(
+                labelText: 'Date Idea (e.g. Picnic at Englischer Garten)',
+                labelStyle: AppTypography.body(color: AppColors.textTertiary),
+                filled: true,
+                fillColor: AppColors.surfaceGlass,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: locationController,
+              style: AppTypography.body(color: Colors.white),
+              decoration: InputDecoration(
+                labelText: 'Location in Germany (e.g. Munich, Berlin, Black Forest)',
+                labelStyle: AppTypography.body(color: AppColors.textTertiary),
+                filled: true,
+                fillColor: AppColors.surfaceGlass,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: AppColors.textTertiary))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.champagneGold, foregroundColor: Colors.black),
+            onPressed: () async {
+              if (titleController.text.trim().isNotEmpty) {
+                HapticFeedback.mediumImpact();
+                await widget.controller.addDreamDate(
+                  title: titleController.text.trim(),
+                  description: 'A magical moment together in Germany',
+                  location: locationController.text.trim().isNotEmpty ? locationController.text.trim() : 'Munich',
+                  season: seasonController.text.trim(),
+                );
+                if (ctx.mounted) Navigator.pop(ctx);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      behavior: SnackBarBehavior.floating,
+                      content: Text('🏰 Added new fairytale date to our Germany bucket list!'),
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Add to Bucket List', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
         ],
       ),
     );

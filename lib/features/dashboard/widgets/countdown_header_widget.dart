@@ -11,6 +11,49 @@ class CountdownHeaderWidget extends StatelessWidget {
 
   const CountdownHeaderWidget({super.key, required this.controller});
 
+  void _pickCustomFlightDate(BuildContext context) async {
+    final currentTarget = controller.coupleData?['target_germany_date'] != null
+        ? DateTime.tryParse(controller.coupleData!['target_germany_date']) ?? DateTime(2028, 10, 1)
+        : DateTime(2028, 10, 1);
+
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: currentTarget,
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2035, 12, 31),
+      helpText: 'CHOOSE OUR DEPARTURE DATE TO GERMANY',
+      builder: (ctx, child) {
+        return Theme(
+          data: ThemeData.dark().copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: AppColors.champagneGold,
+              onPrimary: Colors.black,
+              surface: Color(0xFF1E172F),
+              onSurface: Colors.white,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      await controller.updateTargetGermanyDate(picked);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppColors.surface,
+            content: Text(
+              '✈️ Germany flight target updated to ${DateFormat('MMMM d, yyyy').format(picked)}! Countdown synced.',
+              style: AppTypography.body(color: AppColors.champagneGold),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final currencyFormatter = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
@@ -53,36 +96,50 @@ class CountdownHeaderWidget extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Glowing Days Countdown Display
-          Container(
-            padding: const EdgeInsetsDirectional.symmetric(horizontal: 22, vertical: 12),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceGlass,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.borderGlow, width: 1.2),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.roseQuartz.withValues(alpha: 0.18),
-                  blurRadius: 18,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.flight_takeoff_rounded, color: AppColors.champagneGold, size: 24),
-                const SizedBox(width: 12),
-                Text(
-                  '${controller.daysRemaining} Days',
-                  style: AppTypography.romanticHeadline(fontSize: 30, color: AppColors.textPrimary),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'until our flight',
-                  style: AppTypography.body(fontSize: 13, color: AppColors.textSecondary),
-                ),
-              ],
+          // Glowing Days Countdown Display (Tap to Customize Date)
+          InkWell(
+            onTap: () => _pickCustomFlightDate(context),
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsetsDirectional.symmetric(horizontal: 22, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceGlass,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.borderGlow, width: 1.2),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.roseQuartz.withValues(alpha: 0.18),
+                    blurRadius: 18,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.flight_takeoff_rounded, color: AppColors.champagneGold, size: 24),
+                  const SizedBox(width: 12),
+                  Text(
+                    '${controller.daysRemaining} Days',
+                    style: AppTypography.romanticHeadline(fontSize: 30, color: AppColors.textPrimary),
+                  ),
+                  const SizedBox(width: 8),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'until our flight',
+                        style: AppTypography.body(fontSize: 13, color: AppColors.textSecondary),
+                      ),
+                      Text(
+                        'Tap to edit ✎',
+                        style: AppTypography.body(fontSize: 10, color: AppColors.champagneGold),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.1, end: 0),
 
