@@ -22,7 +22,7 @@ class _SanctuaryAuthPageState extends State<SanctuaryAuthPage> with SingleTicker
   @override
   void initState() {
     super.initState();
-    _passwordController = TextEditingController(text: 'HariAndRintamol2028!');
+    _passwordController = TextEditingController();
   }
 
   @override
