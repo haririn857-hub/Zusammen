@@ -14,6 +14,7 @@ class AppColors {
   static const Color roseQuartz = Color(0xFFE56B6F);
   static const Color velvetPink = Color(0xFFF28482);
   static const Color deepRose = Color(0xFFB54B5E);
+  static const Color burgundy = Color(0xFF6B1D2F);
   static const Color warmBlush = Color(0xFFF7D6D0);
 
   // Warm Candlelight & Gold (Germany Dreams & Coins)
