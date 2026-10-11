@@ -213,16 +213,26 @@ class _PamperViewState extends State<PamperView> {
                     onPressed: () {
                       HapticFeedback.heavyImpact();
                       widget.controller.triggerHeartPulse();
+                      final isRinta = widget.controller.isRinta;
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           behavior: SnackBarBehavior.floating,
                           backgroundColor: const Color(0xFF2E1A29),
-                          content: Text('🫂 “$hariName is holding your hand right now. Breathe deeply, my love. We are going to make it.”'),
+                          content: Text(
+                            isRinta
+                                ? '🫂 “$hariName is holding your hand right now. Breathe deeply, my love. We are going to make it.”'
+                                : '🫂 You sent your warm strength to $rintaName. Her heart feels you beside her right now ❤️',
+                          ),
                         ),
                       );
                     },
                     icon: const Icon(Icons.favorite, size: 18, color: Colors.white),
-                    label: Text('$hariName, Hold My Hand Right Now', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
+                    label: Text(
+                      widget.controller.isRinta
+                          ? '$hariName, Hold My Hand Right Now'
+                          : 'Hold $rintaName’s Hand Right Now',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF9E2A2B),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

@@ -67,6 +67,7 @@ class DualHorizonsWidget extends StatelessWidget {
     // Germany is UTC+2 (CEST) or UTC+1 (CET), Kerala is UTC+5:30 (approx 3.5 hrs behind)
     final germanyTime = DateFormat('hh:mm a').format(now.subtract(const Duration(hours: 3, minutes: 30)));
 
+    final isHari = controller?.isHari ?? true;
     final rintaMood = controller?.rintaMember?['current_mood']?.toString().replaceAll('_', ' ') ?? 'peaceful';
     final hariMood = controller?.hariMember?['current_mood']?.toString().replaceAll('_', ' ') ?? 'determined';
     final rintaName = controller?.rintaName ?? 'Rintamol';
@@ -74,7 +75,7 @@ class DualHorizonsWidget extends StatelessWidget {
 
     return Row(
       children: [
-        // Kerala Card (Tap to update Rinta's mood)
+        // Kerala Card
         Expanded(
           child: InkWell(
             onTap: () => _showMoodSelector(context, 'rinta', rintaName),
@@ -88,13 +89,19 @@ class DualHorizonsWidget extends StatelessWidget {
                     children: [
                       const Text('🌴', style: TextStyle(fontSize: 18)),
                       const SizedBox(width: 6),
-                      Text('Kerala Now', style: AppTypography.body(fontSize: 12, fontWeight: FontWeight.w600)),
+                      Text(
+                        isHari ? '$rintaName’s Heart' : 'My Heart (Kerala)',
+                        style: AppTypography.body(fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   Text(keralaTime, style: AppTypography.numbers(fontSize: 18, color: AppColors.roseQuartz)),
                   const SizedBox(height: 4),
-                  Text('$rintaName: $rintaMood ✎', style: AppTypography.body(fontSize: 11, color: AppColors.champagneGold)),
+                  Text(
+                    isHari ? '$rintaName: $rintaMood' : 'Mood: $rintaMood ✎',
+                    style: AppTypography.body(fontSize: 11, color: AppColors.champagneGold),
+                  ),
                 ],
               ),
             ),
@@ -102,7 +109,7 @@ class DualHorizonsWidget extends StatelessWidget {
         ),
         const SizedBox(width: 14),
 
-        // Munich Germany Card (Tap to update Hari's mood)
+        // Munich Germany Card
         Expanded(
           child: InkWell(
             onTap: () => _showMoodSelector(context, 'hari', hariName),
@@ -116,13 +123,19 @@ class DualHorizonsWidget extends StatelessWidget {
                     children: [
                       const Text('🍁', style: TextStyle(fontSize: 18)),
                       const SizedBox(width: 6),
-                      Text('Munich Soon', style: AppTypography.body(fontSize: 12, fontWeight: FontWeight.w600)),
+                      Text(
+                        isHari ? 'My Heart (Munich)' : '$hariName’s Heart',
+                        style: AppTypography.body(fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   Text(germanyTime, style: AppTypography.numbers(fontSize: 18, color: AppColors.champagneGold)),
                   const SizedBox(height: 4),
-                  Text('$hariName: $hariMood ✎', style: AppTypography.body(fontSize: 11, color: AppColors.champagneGold)),
+                  Text(
+                    isHari ? 'Mood: $hariMood ✎' : '$hariName: $hariMood',
+                    style: AppTypography.body(fontSize: 11, color: AppColors.champagneGold),
+                  ),
                 ],
               ),
             ),

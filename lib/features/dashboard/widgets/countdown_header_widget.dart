@@ -91,8 +91,8 @@ class CountdownHeaderWidget extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '“Zwei Herzen, Ein Weg” — Hand in Hand to Germany',
-            style: AppTypography.loveScript(fontSize: 20, color: AppColors.warmBlush),
+            '“Zwei Herzen, Ein Weg” — Welcome home, ${controller.myName} ${controller.isHari ? "🤴" : "👸"}',
+            style: AppTypography.loveScript(fontSize: 18, color: AppColors.warmBlush),
           ),
           const SizedBox(height: 24),
 

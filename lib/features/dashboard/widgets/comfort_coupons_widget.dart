@@ -13,6 +13,7 @@ class ComfortCouponsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final coupons = controller.coupons;
+    final isRinta = controller.isRinta;
 
     return RomanticCard(
       child: Column(
@@ -25,11 +26,16 @@ class ComfortCouponsWidget extends StatelessWidget {
                 children: [
                   const Text('🎟️', style: TextStyle(fontSize: 20)),
                   const SizedBox(width: 8),
-                  Text('${controller.rintaName}’s Pamper Coupons', style: AppTypography.romanticHeadline(fontSize: 18)),
+                  Text(
+                    isRinta
+                        ? 'My Pamper Coupons (From ${controller.hariName})'
+                        : 'Pamper Coupons for ${controller.rintaName}',
+                    style: AppTypography.romanticHeadline(fontSize: 16),
+                  ),
                 ],
               ),
               Text(
-                'Redeem Anytime',
+                isRinta ? 'Tap to Redeem' : 'Honored with Love',
                 style: AppTypography.body(fontSize: 11, color: AppColors.champagneGold),
               ),
             ],
@@ -95,7 +101,9 @@ class ComfortCouponsWidget extends StatelessWidget {
                                       backgroundColor: AppColors.surface,
                                       behavior: SnackBarBehavior.floating,
                                       content: Text(
-                                        '🎉 Coupon redeemed! ${controller.hariName} owes you: ${coupon['title']}',
+                                        isRinta
+                                            ? '🎉 Coupon redeemed! ${controller.hariName} owes you: ${coupon['title']} ❤️'
+                                            : '🎉 You honored this coupon for ${controller.rintaName}: ${coupon['title']} ❤️',
                                         style: AppTypography.body(color: AppColors.champagneGold),
                                       ),
                                     ),
@@ -110,7 +118,9 @@ class ComfortCouponsWidget extends StatelessWidget {
                           padding: const EdgeInsetsDirectional.symmetric(horizontal: 14, vertical: 8),
                         ),
                         child: Text(
-                          isRedeemed ? 'Claimed' : 'Redeem',
+                          isRedeemed
+                              ? (isRinta ? 'Claimed' : 'Redeemed')
+                              : (isRinta ? 'Redeem' : 'Honor'),
                           style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                         ),
                       ),

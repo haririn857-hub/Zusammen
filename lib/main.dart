@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'core/themes/app_theme.dart';
+import 'features/auth/pages/sanctuary_auth_page.dart';
 import 'features/dashboard/pages/dashboard_page.dart';
 import 'services/supabase/service/supabase_service.dart';
 
@@ -14,11 +15,14 @@ class ZusammenApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isAuthenticated = SupabaseService().isAuthenticated;
+
     return MaterialApp(
       title: 'Zusammen — Hari & Rintamol',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.romanticDarkTheme,
-      home: const DashboardPage(),
+      home: isAuthenticated ? const DashboardPage() : const SanctuaryAuthPage(),
     );
   }
 }
+

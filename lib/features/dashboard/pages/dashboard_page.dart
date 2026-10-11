@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../../core/themes/colors.dart';
 import '../../../core/themes/typography.dart';
 import '../../../shared/widgets/stardust_background.dart';
+import '../../auth/pages/sanctuary_auth_page.dart';
 import '../controllers/dashboard_controller.dart';
 import '../widgets/countdown_header_widget.dart';
 import '../widgets/dual_horizons_widget.dart';
@@ -92,7 +93,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                       ),
                                     ],
                                   ),
-                                  // Live Presence Pill & Refresh
+                                  // Live Presence Pill & Partner Avatar Chip
                                   Row(
                                     children: [
                                       IconButton(
@@ -100,29 +101,35 @@ class _DashboardPageState extends State<DashboardPage> {
                                         onPressed: () => _controller.fetchAllData(),
                                         tooltip: 'Refresh Our Sanctuary',
                                       ),
-                                      Container(
-                                        padding: const EdgeInsetsDirectional.symmetric(horizontal: 12, vertical: 6),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.surfaceGlass,
-                                          borderRadius: BorderRadius.circular(20),
-                                          border: Border.all(color: AppColors.borderGlass),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Container(
-                                              width: 8,
-                                              height: 8,
-                                              decoration: const BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                color: Colors.greenAccent,
+                                      const SizedBox(width: 4),
+                                      // Perspective / Soul Switcher Chip
+                                      GestureDetector(
+                                        onTap: () => _showPartnerSwitchSheet(context),
+                                        child: Container(
+                                          padding: const EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 6),
+                                          decoration: BoxDecoration(
+                                            color: (_controller.isHari ? AppColors.champagneGold : AppColors.roseQuartz).withValues(alpha: 0.18),
+                                            borderRadius: BorderRadius.circular(20),
+                                            border: Border.all(
+                                              color: (_controller.isHari ? AppColors.champagneGold : AppColors.roseQuartz).withValues(alpha: 0.5),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Text(_controller.isHari ? '🤴' : '👸', style: const TextStyle(fontSize: 14)),
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                _controller.myName,
+                                                style: AppTypography.body(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: _controller.isHari ? AppColors.champagneGold : AppColors.roseQuartz,
+                                                ),
                                               ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Text(
-                                              'Connected ❤️',
-                                              style: AppTypography.body(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white),
-                                            ),
-                                          ],
+                                              const SizedBox(width: 4),
+                                              const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: AppColors.textSecondary),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -285,4 +292,103 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
     );
   }
+
+  void _showPartnerSwitchSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.backgroundSecondary,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (bottomSheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(_controller.isHari ? '🤴' : '👸', style: const TextStyle(fontSize: 24)),
+                    const SizedBox(width: 10),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Soul Sanctuary Profile',
+                          style: AppTypography.romanticHeadline(fontSize: 18),
+                        ),
+                        Text(
+                          'Currently experiencing as ${_controller.myName}',
+                          style: AppTypography.body(fontSize: 12, color: AppColors.champagneGold),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceGlass,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.swap_horiz_rounded, color: AppColors.champagneGold),
+                  ),
+                  title: Text(
+                    'Switch to ${_controller.partnerName}’s Perspective',
+                    style: AppTypography.body(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  ),
+                  subtitle: Text(
+                    'Open the sanctuary door as ${_controller.partnerName}',
+                    style: AppTypography.body(fontSize: 11, color: AppColors.textTertiary),
+                  ),
+                  onTap: () async {
+                    Navigator.of(bottomSheetContext).pop();
+                    await _controller.signOut();
+                    if (context.mounted) {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (_) => const SanctuaryAuthPage()),
+                      );
+                    }
+                  },
+                ),
+                const Divider(color: AppColors.borderGlass, height: 16),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceGlass,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.lock_outline_rounded, color: AppColors.roseQuartz),
+                  ),
+                  title: Text(
+                    'Lock Sanctuary 🔒',
+                    style: AppTypography.body(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.roseQuartz),
+                  ),
+                  subtitle: Text(
+                    'Ensure no one else on this device can read our secrets or dates',
+                    style: AppTypography.body(fontSize: 11, color: AppColors.textTertiary),
+                  ),
+                  onTap: () async {
+                    Navigator.of(bottomSheetContext).pop();
+                    await _controller.signOut();
+                    if (context.mounted) {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (_) => const SanctuaryAuthPage()),
+                      );
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
+

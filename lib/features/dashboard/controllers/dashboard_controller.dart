@@ -38,6 +38,16 @@ class DashboardController extends ChangeNotifier with Initializer {
   String get rintaName => (rintaMember?['pet_name'] as String?) ?? (coupleData?['couple_name']?.toString().split('&').last.trim() ?? 'Rintamol');
   String get coupleTitle => (coupleData?['couple_name'] as String?) ?? '$hariName & $rintaName';
 
+  // Dynamic Perspective based on authenticated partner
+  bool get isHari => SupabaseService().isCurrentHari;
+  bool get isRinta => SupabaseService().isCurrentRinta;
+  String get myName => isRinta ? rintaName : hariName;
+  String get partnerName => isRinta ? hariName : rintaName;
+  String get myRole => isRinta ? 'rinta' : 'hari';
+  String get partnerRole => isRinta ? 'hari' : 'rinta';
+  Map<String, dynamic>? get myMember => isRinta ? rintaMember : hariMember;
+  Map<String, dynamic>? get partnerMember => isRinta ? hariMember : rintaMember;
+
   List<Map<String, dynamic>> get voicePills =>
       courageVaultEntries.where((e) => e['category'] == 'voice_love_pill').toList();
   List<Map<String, dynamic>> get timeLockedEnvelopes =>
@@ -470,7 +480,7 @@ class DashboardController extends ChangeNotifier with Initializer {
         'couple_id': AppConfig.coupleId,
         'sender_id': userId,
         'flower_type': 'rose',
-        'message': 'Watered with love by Hari',
+        'message': 'Watered with love by $myName',
       });
 
       notifyListeners();
@@ -486,13 +496,28 @@ class DashboardController extends ChangeNotifier with Initializer {
 
     _realtimeChannel?.sendBroadcastMessage(
       event: 'heartbeat_pulse',
-      payload: {'sender': 'Hari', 'timestamp': DateTime.now().toIso8601String()},
+      payload: {'sender': myName, 'timestamp': DateTime.now().toIso8601String()},
     );
 
     Future.delayed(const Duration(seconds: 3), () {
       isHeartBeating = false;
       notifyListeners();
     });
+  }
+
+  /// Locks sanctuary and resets local state
+  Future<void> signOut() async {
+    await SupabaseService().signOut();
+    coupleData = null;
+    coupleMembers = [];
+    savingsGoals = [];
+    savingsLogs = [];
+    milestones = [];
+    coupons = [];
+    dreamDates = [];
+    loveCards = [];
+    courageVaultEntries = [];
+    notifyListeners();
   }
 
   @override
