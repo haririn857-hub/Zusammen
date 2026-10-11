@@ -141,7 +141,7 @@ class _GermanyRoadmapViewState extends State<GermanyRoadmapView> {
           else
             RomanticCard(
               padding: const EdgeInsetsDirectional.all(24),
-              child: Center(child: Text('Loading Germany roadmap from Supabase…', style: AppTypography.body())),
+              child: Center(child: Text('Loading our sacred Germany roadmap…', style: AppTypography.body())),
             ),
 
           const SizedBox(height: 24),

@@ -45,7 +45,7 @@ class StickyNoteWidget extends StatelessWidget {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       behavior: SnackBarBehavior.floating,
-                      content: Text('📌 Note pinned to our virtual fridge in Supabase!'),
+                      content: Text('📌 Note pinned to our sacred fridge with love! ❤️'),
                     ),
                   );
                 }

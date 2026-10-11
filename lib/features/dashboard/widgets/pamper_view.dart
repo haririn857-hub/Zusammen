@@ -152,7 +152,7 @@ class _PamperViewState extends State<PamperView> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             behavior: SnackBarBehavior.floating,
-                            content: Text('🌹 Sent a fresh morning bloom to Rintamol and updated Supabase!'),
+                            content: Text('🌹 Sent a fresh morning bloom to Rintamol!'),
                           ),
                         );
                       }

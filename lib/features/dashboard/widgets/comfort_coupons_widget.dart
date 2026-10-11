@@ -122,7 +122,7 @@ class ComfortCouponsWidget extends StatelessWidget {
           else
             Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Center(child: Text('Loading coupons from Supabase…', style: AppTypography.body())),
+              child: Center(child: Text('Loading loving coupons…', style: AppTypography.body())),
             ),
         ],
       ),
