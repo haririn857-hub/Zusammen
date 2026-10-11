@@ -19,23 +19,32 @@ class SupabaseService with Initializer {
         publishableKey: AppConfig.supabaseAnonKey,
       );
 
-      // Auto-authenticate so Row-Level Security allows reading all couple data
-      if (client.auth.currentSession == null) {
-        try {
-          await client.auth.signInWithPassword(
-            email: 'hari@zusammen.love',
-            password: 'HariAndRintamol2028!',
-          );
-          debugPrint('Authenticated as Hari successfully');
-        } catch (authError) {
-          debugPrint('Auto-auth warning: $authError');
-        }
-      }
-
+      // Guarantee an active authenticated session for Hari or Rinta
+      await ensureAuthenticated();
       debugPrint('Supabase initialized successfully for ${AppConfig.appName}');
     } catch (e) {
       debugPrint('Supabase initialization error: $e');
       rethrow;
+    }
+  }
+
+  /// Ensures an active valid session exists for Hari or Rinta so RLS never rejects calls
+  Future<void> ensureAuthenticated() async {
+    try {
+      final currentEmail = client.auth.currentUser?.email;
+      final session = client.auth.currentSession;
+      final isSessionValid = session != null && !session.isExpired;
+
+      if (!isSessionValid || (currentEmail != 'hari@zusammen.love' && currentEmail != 'rinta@zusammen.love')) {
+        debugPrint('Refreshing/Authenticating session as Hari...');
+        await client.auth.signInWithPassword(
+          email: 'hari@zusammen.love',
+          password: 'HariAndRintamol2028!',
+        );
+        debugPrint('Authenticated as Hari successfully');
+      }
+    } catch (authError) {
+      debugPrint('Auth validation warning: $authError');
     }
   }
 

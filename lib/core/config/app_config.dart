@@ -14,7 +14,13 @@ class AppConfig {
   static const double targetSperrkontoEur = 11904.0;
   static const double targetSavingsInr = 1350000.0;
 
-  // Supabase Live Credentials
-  static const String supabaseUrl = 'https://cjlllzklugpsvfbeewlv.supabase.co';
-  static const String supabaseAnonKey = 'sb_publishable_whLYeS9aDRqBrZxXrzsZBg_gpT7vtNq';
+  // Supabase Credentials (Safe for Web Client - configurable via --dart-define)
+  static const String supabaseUrl = String.fromEnvironment(
+    'SUPABASE_URL',
+    defaultValue: 'https://cjlllzklugpsvfbeewlv.supabase.co',
+  );
+  static const String supabaseAnonKey = String.fromEnvironment(
+    'SUPABASE_ANON_KEY',
+    defaultValue: 'sb_publishable_whLYeS9aDRqBrZxXrzsZBg_gpT7vtNq',
+  );
 }

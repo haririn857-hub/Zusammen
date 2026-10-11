@@ -55,16 +55,7 @@ class DashboardController extends ChangeNotifier with Initializer {
   }
 
   Future<void> _ensureAuth() async {
-    if (_client.auth.currentSession == null) {
-      try {
-        await _client.auth.signInWithPassword(
-          email: 'hari@zusammen.love',
-          password: 'HariAndRintamol2028!',
-        );
-      } catch (e) {
-        debugPrint('Auth check: $e');
-      }
-    }
+    await SupabaseService().ensureAuthenticated();
   }
 
   Future<void> fetchAllData() async {
