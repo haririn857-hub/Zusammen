@@ -4,6 +4,7 @@ import '../../../core/themes/colors.dart';
 import '../../../core/themes/typography.dart';
 import '../../../shared/widgets/romantic_card.dart';
 import '../controllers/dashboard_controller.dart';
+import 'love_kiss_celebration_dialog.dart';
 
 class ThumbprintKissWidget extends StatelessWidget {
   final DashboardController controller;
@@ -34,15 +35,12 @@ class ThumbprintKissWidget extends StatelessWidget {
           GestureDetector(
             onTap: () {
               controller.triggerHeartPulse();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  backgroundColor: AppColors.surface,
-                  behavior: SnackBarBehavior.floating,
-                  content: Text(
-                    '❤️ Sent heartbeat pulse! Your phone and ${controller.partnerName}’s phone are vibrating together.',
-                    style: AppTypography.body(color: AppColors.warmBlush),
-                  ),
-                ),
+              LoveKissCelebrationDialog.show(
+                context: context,
+                title: 'Kiss Sent Across Distance! 💋',
+                subtitle: '“Holding your hand right now across the miles… feel my warmth, ${controller.partnerName}”',
+                senderName: controller.myName,
+                isIncoming: false,
               );
             },
             child: Container(

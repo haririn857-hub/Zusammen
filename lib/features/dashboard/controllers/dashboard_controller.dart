@@ -20,9 +20,14 @@ class DashboardController extends ChangeNotifier with Initializer {
 
   bool isSubmitting = false;
   String? incomingAlertMessage;
+  String? incomingKissSender;
 
   void clearIncomingAlert() {
     incomingAlertMessage = null;
+  }
+
+  void clearIncomingKiss() {
+    incomingKissSender = null;
   }
 
   // Realtime Live Lists
@@ -249,7 +254,7 @@ class DashboardController extends ChangeNotifier with Initializer {
             final sender = (payload['sender'] as String?) ?? partnerName;
             debugPrint('Received heartbeat pulse from partner: $payload');
             isHeartBeating = true;
-            incomingAlertMessage = '❤️ $sender sent you a live Heartbeat & Kiss!';
+            incomingKissSender = sender;
             notifyListeners();
             VibrationHelper.vibrateHeartbeat();
 

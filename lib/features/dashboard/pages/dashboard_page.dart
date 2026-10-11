@@ -13,6 +13,7 @@ import '../widgets/budget_planner_view.dart';
 import '../widgets/love_deck_view.dart';
 import '../widgets/germany_roadmap_view.dart';
 import '../widgets/pamper_view.dart';
+import '../widgets/love_kiss_celebration_dialog.dart';
 import '../../../shared/widgets/zusammen_logo.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -36,6 +37,27 @@ class _DashboardPageState extends State<DashboardPage> {
 
   void _handleIncomingAlerts() {
     if (!mounted) return;
+
+    // 1. Incoming Love Kiss Celebration Popup
+    if (_controller.incomingKissSender != null) {
+      final sender = _controller.incomingKissSender!;
+      _controller.clearIncomingKiss();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        LoveKissCelebrationDialog.show(
+          context: context,
+          title: '$sender Sent You A Warm Kiss! 💋',
+          subtitle: '“Felt your heartbeat across the distance… holding you tight right now”',
+          senderName: sender,
+          isIncoming: true,
+          onSendBack: () {
+            _controller.triggerHeartPulse();
+          },
+        );
+      });
+    }
+
+    // 2. Generic alerts (Notes, Sperrkonto updates, Balcony blooms)
     if (_controller.incomingAlertMessage != null) {
       final msg = _controller.incomingAlertMessage!;
       _controller.clearIncomingAlert();
