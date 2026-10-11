@@ -11,6 +11,7 @@ class CoinJarWidget extends StatelessWidget {
   const CoinJarWidget({super.key, required this.controller});
 
   void _dropCoin(BuildContext context, double amount, String note) async {
+    if (controller.isSubmitting) return;
     HapticFeedback.mediumImpact();
     await controller.addSavingLog(amount: amount, title: note);
 
@@ -32,65 +33,88 @@ class CoinJarWidget extends StatelessWidget {
   void _showCustomDepositDialog(BuildContext context) {
     final amountController = TextEditingController();
     final noteController = TextEditingController();
+    bool isSubmitting = false;
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: Text('Add to Germany Savings', style: AppTypography.romanticHeadline(fontSize: 18)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: amountController,
-              keyboardType: TextInputType.number,
-              style: AppTypography.numbers(color: AppColors.champagneGold),
-              decoration: InputDecoration(
-                labelText: 'Amount (₹)',
-                labelStyle: AppTypography.body(color: AppColors.textTertiary),
-                filled: true,
-                fillColor: AppColors.surfaceGlass,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-              ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: AppColors.surface,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+            title: Text('Add to Germany Savings', style: AppTypography.romanticHeadline(fontSize: 18)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: amountController,
+                  keyboardType: TextInputType.number,
+                  style: AppTypography.numbers(color: AppColors.champagneGold),
+                  decoration: InputDecoration(
+                    labelText: 'Amount (₹)',
+                    labelStyle: AppTypography.body(color: AppColors.textTertiary),
+                    filled: true,
+                    fillColor: AppColors.surfaceGlass,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: noteController,
+                  style: AppTypography.body(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Note (e.g. October Salary Savings)',
+                    labelStyle: AppTypography.body(color: AppColors.textTertiary),
+                    filled: true,
+                    fillColor: AppColors.surfaceGlass,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: noteController,
-              style: AppTypography.body(color: Colors.white),
-              decoration: InputDecoration(
-                labelText: 'Note (e.g. October Salary Savings)',
-                labelStyle: AppTypography.body(color: AppColors.textTertiary),
-                filled: true,
-                fillColor: AppColors.surfaceGlass,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+            actions: [
+              TextButton(
+                onPressed: isSubmitting ? null : () => Navigator.pop(ctx),
+                child: const Text('Cancel', style: TextStyle(color: AppColors.textTertiary)),
               ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: AppColors.textTertiary))),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.champagneGold, foregroundColor: Colors.black),
-            onPressed: () async {
-              final amount = double.tryParse(amountController.text.trim());
-              if (amount != null && amount > 0) {
-                HapticFeedback.mediumImpact();
-                final note = noteController.text.trim().isNotEmpty ? noteController.text.trim() : 'Sacrifice savings';
-                await controller.addSavingLog(amount: amount, title: note);
-                if (ctx.mounted) Navigator.pop(ctx);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      behavior: SnackBarBehavior.floating,
-                      content: Text('🎉 Deposited ₹${amount.toInt()} to our Germany fund!'),
-                    ),
-                  );
-                }
-              }
-            },
-            child: const Text('Save to Fund', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.champagneGold,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                ),
+                onPressed: isSubmitting
+                    ? null
+                    : () async {
+                        final amount = double.tryParse(amountController.text.trim());
+                        if (amount != null && amount > 0) {
+                          setDialogState(() => isSubmitting = true);
+                          HapticFeedback.mediumImpact();
+                          final note = noteController.text.trim().isNotEmpty ? noteController.text.trim() : 'Sacrifice savings';
+                          await controller.addSavingLog(amount: amount, title: note);
+                          if (ctx.mounted) Navigator.pop(ctx);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                behavior: SnackBarBehavior.floating,
+                                content: Text('🎉 Deposited ₹${amount.toInt()} to our Germany fund!'),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                child: isSubmitting
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                      )
+                    : const Text('Save to Fund', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

@@ -5,6 +5,7 @@ import '../../../core/themes/colors.dart';
 import '../../../core/themes/typography.dart';
 import '../../../shared/widgets/romantic_card.dart';
 import '../controllers/dashboard_controller.dart';
+import 'coin_jar_widget.dart';
 
 class BudgetPlannerView extends StatefulWidget {
   final DashboardController controller;
@@ -145,6 +146,11 @@ class _BudgetPlannerViewState extends State<BudgetPlannerView> {
             ),
           ),
 
+          const SizedBox(height: 20),
+
+          // Micro-Sacrifice Coin Jar
+          CoinJarWidget(controller: widget.controller),
+
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -238,7 +244,22 @@ class _BudgetPlannerViewState extends State<BudgetPlannerView> {
             RomanticCard(
               padding: const EdgeInsetsDirectional.all(24),
               child: Center(
-                child: Text('Loading our savings goals from database…', style: AppTypography.body()),
+                child: Column(
+                  children: [
+                    const Text('🎯', style: TextStyle(fontSize: 32)),
+                    const SizedBox(height: 10),
+                    Text(
+                      'No Savings Goals Yet',
+                      style: AppTypography.romanticHeadline(fontSize: 17, color: AppColors.textPrimary),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Tap the + button above to define our first Germany milestone together (e.g. Flight Tickets, Visa Fees, Sperrkonto Deposit)!',
+                      style: AppTypography.body(fontSize: 12, color: AppColors.textTertiary),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
             ),
         ],
@@ -250,70 +271,95 @@ class _BudgetPlannerViewState extends State<BudgetPlannerView> {
     final titleController = TextEditingController();
     final targetController = TextEditingController();
     String selectedCurrency = 'INR';
+    bool isSubmitting = false;
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: Text('Add Target Savings Goal', style: AppTypography.romanticHeadline(fontSize: 18)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: titleController,
-              style: AppTypography.body(color: Colors.white),
-              decoration: InputDecoration(
-                labelText: 'Goal Title (e.g. Flight Tickets, Visa Fees)',
-                labelStyle: AppTypography.body(color: AppColors.textTertiary),
-                filled: true,
-                fillColor: AppColors.surfaceGlass,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-              ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: AppColors.surface,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+            title: Text('Add Target Savings Goal', style: AppTypography.romanticHeadline(fontSize: 18)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  style: AppTypography.body(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Goal Title (e.g. Flight Tickets, Visa Fees)',
+                    labelStyle: AppTypography.body(color: AppColors.textTertiary),
+                    filled: true,
+                    fillColor: AppColors.surfaceGlass,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: targetController,
+                  keyboardType: TextInputType.number,
+                  style: AppTypography.numbers(color: AppColors.champagneGold),
+                  decoration: InputDecoration(
+                    labelText: 'Target Amount ($selectedCurrency)',
+                    labelStyle: AppTypography.body(color: AppColors.textTertiary),
+                    filled: true,
+                    fillColor: AppColors.surfaceGlass,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: targetController,
-              keyboardType: TextInputType.number,
-              style: AppTypography.numbers(color: AppColors.champagneGold),
-              decoration: InputDecoration(
-                labelText: 'Target Amount ($selectedCurrency)',
-                labelStyle: AppTypography.body(color: AppColors.textTertiary),
-                filled: true,
-                fillColor: AppColors.surfaceGlass,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+            actions: [
+              TextButton(
+                onPressed: isSubmitting ? null : () => Navigator.pop(ctx),
+                child: const Text('Cancel', style: TextStyle(color: AppColors.textTertiary)),
               ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: AppColors.textTertiary))),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.champagneGold, foregroundColor: Colors.black),
-            onPressed: () async {
-              final target = double.tryParse(targetController.text.trim());
-              if (titleController.text.trim().isNotEmpty && target != null && target > 0) {
-                HapticFeedback.mediumImpact();
-                await widget.controller.addSavingsGoal(
-                  title: titleController.text.trim(),
-                  targetAmount: target,
-                  currency: selectedCurrency,
-                  category: 'emergency_fund',
-                );
-                if (ctx.mounted) Navigator.pop(ctx);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      behavior: SnackBarBehavior.floating,
-                      content: Text('🎯 New savings goal added to our Germany plan!'),
-                    ),
-                  );
-                }
-              }
-            },
-            child: const Text('Add Goal', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.champagneGold,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                ),
+                onPressed: isSubmitting
+                    ? null
+                    : () async {
+                        final target = double.tryParse(targetController.text.trim());
+                        final title = titleController.text.trim();
+                        if (title.isNotEmpty && target != null && target > 0) {
+                          setDialogState(() => isSubmitting = true);
+                          HapticFeedback.mediumImpact();
+                          await widget.controller.addSavingsGoal(
+                            title: title,
+                            targetAmount: target,
+                            currency: selectedCurrency,
+                            category: 'emergency_fund',
+                          );
+                          if (ctx.mounted) Navigator.pop(ctx);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                behavior: SnackBarBehavior.floating,
+                                content: Text('🎯 New savings goal added to our Germany plan!'),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                child: isSubmitting
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                      )
+                    : const Text('Add Goal', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 }
+

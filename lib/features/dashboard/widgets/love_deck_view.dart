@@ -19,46 +19,69 @@ class _LoveDeckViewState extends State<LoveDeckView> {
 
   void _showAddReasonDialog(BuildContext context) {
     final textController = TextEditingController();
+    bool isSubmitting = false;
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: Text('Add a Reason Why I Choose You', style: AppTypography.romanticHeadline(fontSize: 18)),
-        content: TextField(
-          controller: textController,
-          maxLines: 3,
-          style: AppTypography.body(color: Colors.white),
-          decoration: InputDecoration(
-            hintText: 'Because…',
-            hintStyle: AppTypography.body(color: AppColors.textTertiary),
-            filled: true,
-            fillColor: AppColors.surfaceGlass,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: AppColors.textTertiary))),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.roseQuartz),
-            onPressed: () async {
-              if (textController.text.trim().isNotEmpty) {
-                HapticFeedback.mediumImpact();
-                await widget.controller.addLoveCard(textController.text.trim());
-                if (ctx.mounted) Navigator.pop(ctx);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      behavior: SnackBarBehavior.floating,
-                      content: Text('💌 Added new reason to our sacred love deck!'),
-                    ),
-                  );
-                }
-              }
-            },
-            child: const Text('Add to Deck', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          ),
-        ],
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: AppColors.surface,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+            title: Text('Add a Reason Why I Choose You', style: AppTypography.romanticHeadline(fontSize: 18)),
+            content: TextField(
+              controller: textController,
+              maxLines: 3,
+              style: AppTypography.body(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: 'Because…',
+                hintStyle: AppTypography.body(color: AppColors.textTertiary),
+                filled: true,
+                fillColor: AppColors.surfaceGlass,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: isSubmitting ? null : () => Navigator.pop(ctx),
+                child: const Text('Cancel', style: TextStyle(color: AppColors.textTertiary)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.roseQuartz,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                ),
+                onPressed: isSubmitting
+                    ? null
+                    : () async {
+                        final text = textController.text.trim();
+                        if (text.isNotEmpty) {
+                          setDialogState(() => isSubmitting = true);
+                          HapticFeedback.mediumImpact();
+                          await widget.controller.addLoveCard(text);
+                          if (ctx.mounted) Navigator.pop(ctx);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                behavior: SnackBarBehavior.floating,
+                                content: Text('💌 Added new reason to our sacred love deck!'),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                child: isSubmitting
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Text('Add to Deck', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -184,7 +207,22 @@ class _LoveDeckViewState extends State<LoveDeckView> {
             RomanticCard(
               padding: const EdgeInsetsDirectional.all(24),
               child: Center(
-                child: Text('Opening our love deck…', style: AppTypography.body()),
+                child: Column(
+                  children: [
+                    const Text('💌', style: TextStyle(fontSize: 32)),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Our Love Deck is Ready',
+                      style: AppTypography.romanticHeadline(fontSize: 17, color: AppColors.textPrimary),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Tap the + button above to write our first reason why we choose each other! ❤️',
+                      style: AppTypography.body(fontSize: 12, color: AppColors.textTertiary),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
             ),
 
@@ -197,7 +235,7 @@ class _LoveDeckViewState extends State<LoveDeckView> {
           ),
           const SizedBox(height: 6),
           Text(
-            'When the world feels loud, tap a pill to hear ${widget.controller.hariName}’s voice beside you.',
+            'When the world feels loud, tap a pill to hear ${widget.controller.partnerName}’s voice beside you.',
             style: AppTypography.body(fontSize: 12, color: AppColors.textTertiary),
           ),
           const SizedBox(height: 14),
@@ -215,7 +253,12 @@ class _LoveDeckViewState extends State<LoveDeckView> {
           else
             RomanticCard(
               padding: const EdgeInsets.all(16),
-              child: Center(child: Text('Loading voice pills…', style: AppTypography.body())),
+              child: Center(
+                child: Text(
+                  'Voice love pills will unlock when voice recordings are uploaded 🎙️',
+                  style: AppTypography.body(fontSize: 12, color: AppColors.textTertiary),
+                ),
+              ),
             ),
 
           const SizedBox(height: 28),
@@ -239,7 +282,12 @@ class _LoveDeckViewState extends State<LoveDeckView> {
           else
             RomanticCard(
               padding: const EdgeInsets.all(16),
-              child: Center(child: Text('Loading locked letters…', style: AppTypography.body())),
+              child: Center(
+                child: Text(
+                  'Time-locked wax envelopes waiting to be written with love 💌',
+                  style: AppTypography.body(fontSize: 12, color: AppColors.textTertiary),
+                ),
+              ),
             ),
         ],
       ),

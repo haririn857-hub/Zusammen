@@ -17,6 +17,8 @@ class DashboardController extends ChangeNotifier with Initializer {
   double targetSavingsInr = AppConfig.targetSavingsInr;
   int flowersBloomed = 14;
 
+  bool isSubmitting = false;
+
   // Realtime Live Lists
   List<Map<String, dynamic>> coupleMembers = [];
   List<Map<String, dynamic>> savingsGoals = [];
@@ -26,7 +28,7 @@ class DashboardController extends ChangeNotifier with Initializer {
   List<Map<String, dynamic>> dreamDates = [];
   List<Map<String, dynamic>> loveCards = [];
   List<Map<String, dynamic>> courageVaultEntries = [];
-  String morningNote = 'Good morning Rintamol! Drink warm water, stay strong, and remember: today is one step closer to Munich! ❤️ — Your Hari';
+  List<Map<String, dynamic>> stickyNotes = [];
 
   // Live Partner Details
   Map<String, dynamic>? get hariMember =>
@@ -47,6 +49,35 @@ class DashboardController extends ChangeNotifier with Initializer {
   String get partnerRole => isRinta ? 'hari' : 'rinta';
   Map<String, dynamic>? get myMember => isRinta ? rintaMember : hariMember;
   Map<String, dynamic>? get partnerMember => isRinta ? hariMember : rintaMember;
+
+  // Partner Sticky Notes
+  Map<String, dynamic>? get latestNoteFromHari {
+    try {
+      return stickyNotes.firstWhere((n) => n['author_id'] == '29ed297a-c70a-41ae-b3a8-ff25c1ec562c');
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Map<String, dynamic>? get latestNoteFromRinta {
+    try {
+      return stickyNotes.firstWhere((n) => n['author_id'] == '83c2770e-d03d-4985-ba3a-1f7ca5c0b05d');
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Note written by the partner to the current user
+  String? get partnerNoteToMe {
+    final note = isHari ? latestNoteFromRinta : latestNoteFromHari;
+    return note?['note_text'] as String?;
+  }
+
+  /// Note written by the current user to their partner
+  String? get myNoteToPartner {
+    final note = isHari ? latestNoteFromHari : latestNoteFromRinta;
+    return note?['note_text'] as String?;
+  }
 
   List<Map<String, dynamic>> get voicePills =>
       courageVaultEntries.where((e) => e['category'] == 'voice_love_pill').toList();
@@ -164,18 +195,15 @@ class DashboardController extends ChangeNotifier with Initializer {
           .order('card_number', ascending: true);
       loveCards = List<Map<String, dynamic>>.from(cardsRes);
 
-      // 8. Fetch Active Sticky Note
+      // 8. Fetch Active Sticky Notes for both partners
       final notesRes = await _client
           .from('sticky_notes')
           .select()
           .eq('couple_id', AppConfig.coupleId)
           .eq('is_active', true)
-          .order('created_at', ascending: false)
-          .limit(1);
+          .order('created_at', ascending: false);
+      stickyNotes = List<Map<String, dynamic>>.from(notesRes);
 
-      if (notesRes.isNotEmpty) {
-        morningNote = notesRes.first['note_text'] as String? ?? morningNote;
-      }
 
       // 9. Fetch Live Couple Members
       final membersRes = await _client
@@ -227,27 +255,13 @@ class DashboardController extends ChangeNotifier with Initializer {
   // ==============================================================================
 
   Future<void> addSavingLog({required double amount, required String title, String? note}) async {
-    // 1. Instant Local State Update (0ms lag, zero loading spinner)
-    final tempId = 'temp-${DateTime.now().millisecondsSinceEpoch}';
-    final optimisticLog = {
-      'id': tempId,
-      'couple_id': AppConfig.coupleId,
-      'amount': amount,
-      'title': title,
-      'note': note ?? 'Micro-sacrifice coin added with love',
-      'currency': 'INR',
-      'log_type': 'micro_sacrifice_coin',
-      'created_at': DateTime.now().toIso8601String(),
-    };
-    savingsLogs.insert(0, optimisticLog);
-    currentSavedInr += amount;
-    flowersBloomed += 1;
+    if (isSubmitting) return;
+    isSubmitting = true;
     notifyListeners();
 
-    // 2. Silent Background Database Synchronization
     try {
       await _ensureAuth();
-      final userId = _client.auth.currentUser?.id ?? '29ed297a-c70a-41ae-b3a8-ff25c1ec562c';
+      final userId = _client.auth.currentUser?.id ?? (isHari ? '29ed297a-c70a-41ae-b3a8-ff25c1ec562c' : '83c2770e-d03d-4985-ba3a-1f7ca5c0b05d');
       final newLog = {
         'couple_id': AppConfig.coupleId,
         'user_id': userId,
@@ -258,42 +272,41 @@ class DashboardController extends ChangeNotifier with Initializer {
         'log_type': 'micro_sacrifice_coin',
       };
 
-      await _client.from('savings_logs').insert(newLog);
-      await _client.from('couples').update({'flowers_bloomed': flowersBloomed}).eq('id', AppConfig.coupleId);
+      final inserted = await _client.from('savings_logs').insert(newLog).select().single();
+      savingsLogs.insert(0, inserted);
+      currentSavedInr += amount;
+      flowersBloomed += 1;
 
-      // Silent sync in background without showing loading indicator
-      await fetchAllData(silent: true);
+      await _client.from('couples').update({'flowers_bloomed': flowersBloomed}).eq('id', AppConfig.coupleId);
     } catch (e) {
-      debugPrint('Silent sync error on addSavingLog: $e');
+      debugPrint('Error on addSavingLog: $e');
+    } finally {
+      isSubmitting = false;
+      notifyListeners();
     }
   }
 
   Future<void> updateTargetGermanyDate(DateTime newDate) async {
-    // 1. Instant Local Update
     final dateStr = '${newDate.year.toString().padLeft(4, '0')}-${newDate.month.toString().padLeft(2, '0')}-${newDate.day.toString().padLeft(2, '0')}';
     coupleData ??= {};
     coupleData!['target_germany_date'] = dateStr;
     notifyListeners();
 
-    // 2. Background Sync
     try {
       await _ensureAuth();
       await _client.from('couples').update({'target_germany_date': dateStr}).eq('id', AppConfig.coupleId);
-      await fetchAllData(silent: true);
     } catch (e) {
       debugPrint('Failed to update target date: $e');
     }
   }
 
   Future<void> updatePartnerMood(String partnerRole, String newMood) async {
-    // 1. Instant Local Update
     final index = coupleMembers.indexWhere((m) => m['partner_role'] == partnerRole);
     if (index != -1) {
       coupleMembers[index]['current_mood'] = newMood;
       notifyListeners();
     }
 
-    // 2. Background Sync
     try {
       await _ensureAuth();
       await _client.from('couple_members').update({
@@ -311,34 +324,27 @@ class DashboardController extends ChangeNotifier with Initializer {
     required String currency,
     required String category,
   }) async {
-    // 1. Instant Local Update
-    final tempGoal = {
-      'id': 'temp-${DateTime.now().millisecondsSinceEpoch}',
-      'couple_id': AppConfig.coupleId,
-      'title': title,
-      'target_amount': targetAmount,
-      'currency': currency,
-      'category': category,
-      'priority': savingsGoals.length + 1,
-      'is_completed': false,
-    };
-    savingsGoals.add(tempGoal);
+    if (isSubmitting) return;
+    isSubmitting = true;
     notifyListeners();
 
-    // 2. Background Sync
     try {
       await _ensureAuth();
-      await _client.from('savings_goals').insert({
+      final inserted = await _client.from('savings_goals').insert({
         'couple_id': AppConfig.coupleId,
         'title': title,
         'target_amount': targetAmount,
         'currency': currency,
         'category': category,
-        'priority': savingsGoals.length,
-      });
-      await fetchAllData(silent: true);
+        'priority': savingsGoals.length + 1,
+      }).select().single();
+
+      savingsGoals.add(inserted);
     } catch (e) {
       debugPrint('Failed to add savings goal: $e');
+    } finally {
+      isSubmitting = false;
+      notifyListeners();
     }
   }
 
@@ -348,44 +354,36 @@ class DashboardController extends ChangeNotifier with Initializer {
     required String location,
     required String season,
   }) async {
-    // 1. Instant Local Update
-    final tempDate = {
-      'id': 'temp-${DateTime.now().millisecondsSinceEpoch}',
-      'couple_id': AppConfig.coupleId,
-      'title': title,
-      'description': description,
-      'location': location,
-      'season': season,
-      'is_completed': false,
-    };
-    dreamDates.add(tempDate);
+    if (isSubmitting) return;
+    isSubmitting = true;
     notifyListeners();
 
-    // 2. Background Sync
     try {
       await _ensureAuth();
-      await _client.from('germany_dream_dates').insert({
+      final inserted = await _client.from('germany_dream_dates').insert({
         'couple_id': AppConfig.coupleId,
         'title': title,
         'description': description,
         'location': location,
         'season': season,
-      });
-      await fetchAllData(silent: true);
+      }).select().single();
+
+      dreamDates.add(inserted);
     } catch (e) {
       debugPrint('Failed to add dream date: $e');
+    } finally {
+      isSubmitting = false;
+      notifyListeners();
     }
   }
 
   Future<void> redeemCoupon(String couponId) async {
-    // 1. Instant Local Update
     final index = coupons.indexWhere((c) => c['id'] == couponId);
     if (index != -1) {
       coupons[index]['is_redeemed'] = true;
       notifyListeners();
     }
 
-    // 2. Background Sync
     try {
       await _ensureAuth();
       await _client.from('comfort_coupons').update({
@@ -398,14 +396,12 @@ class DashboardController extends ChangeNotifier with Initializer {
   }
 
   Future<void> toggleMilestone(String milestoneId, bool isCompleted) async {
-    // 1. Instant Local Update
     final index = milestones.indexWhere((m) => m['id'] == milestoneId);
     if (index != -1) {
       milestones[index]['is_completed'] = isCompleted;
       notifyListeners();
     }
 
-    // 2. Background Sync
     try {
       await _ensureAuth();
       await _client.from('germany_milestones').update({
@@ -418,55 +414,62 @@ class DashboardController extends ChangeNotifier with Initializer {
   }
 
   Future<void> postStickyNote(String noteText) async {
-    // 1. Instant Local Update
-    morningNote = noteText;
+    if (isSubmitting) return;
+    isSubmitting = true;
     notifyListeners();
 
-    // 2. Background Sync
     try {
       await _ensureAuth();
-      final userId = _client.auth.currentUser?.id ?? '29ed297a-c70a-41ae-b3a8-ff25c1ec562c';
-      await _client.from('sticky_notes').update({'is_active': false}).eq('couple_id', AppConfig.coupleId);
+      final userId = _client.auth.currentUser?.id ?? (isHari ? '29ed297a-c70a-41ae-b3a8-ff25c1ec562c' : '83c2770e-d03d-4985-ba3a-1f7ca5c0b05d');
 
-      await _client.from('sticky_notes').insert({
+      // Archive only the active note from this author so partner's note is never overwritten
+      await _client.from('sticky_notes').update({'is_active': false}).eq('couple_id', AppConfig.coupleId).eq('author_id', userId);
+
+      final inserted = await _client.from('sticky_notes').insert({
         'couple_id': AppConfig.coupleId,
         'author_id': userId,
         'note_text': noteText,
-        'color_hex': '#FFE4E6',
+        'color_hex': isHari ? '#FFE4E6' : '#FFF3B0',
         'is_active': true,
-      });
+      }).select().single();
+
+      stickyNotes.removeWhere((n) => n['author_id'] == userId);
+      stickyNotes.insert(0, inserted);
     } catch (e) {
       debugPrint('Failed to post note: $e');
+    } finally {
+      isSubmitting = false;
+      notifyListeners();
     }
   }
 
   Future<void> addLoveCard(String reasonText) async {
-    // 1. Instant Local Update
-    final newCardNumber = loveCards.length + 1;
-    final tempCard = {
-      'id': 'temp-${DateTime.now().millisecondsSinceEpoch}',
-      'couple_id': AppConfig.coupleId,
-      'card_number': newCardNumber,
-      'reason_text': reasonText,
-      'created_at': DateTime.now().toIso8601String(),
-    };
-    loveCards.add(tempCard);
+    if (isSubmitting) return;
+    isSubmitting = true;
     notifyListeners();
 
-    // 2. Background Sync
     try {
       await _ensureAuth();
-      final userId = _client.auth.currentUser?.id ?? '29ed297a-c70a-41ae-b3a8-ff25c1ec562c';
-      await _client.from('love_deck_cards').insert({
+      final userId = _client.auth.currentUser?.id ?? (isHari ? '29ed297a-c70a-41ae-b3a8-ff25c1ec562c' : '83c2770e-d03d-4985-ba3a-1f7ca5c0b05d');
+      final newCardNumber = loveCards.length + 1;
+
+      final inserted = await _client.from('love_deck_cards').insert({
         'couple_id': AppConfig.coupleId,
         'author_id': userId,
         'card_number': newCardNumber,
         'reason_text': reasonText,
-      });
+      }).select().single();
+
+      loveCards.add(inserted);
     } catch (e) {
       debugPrint('Failed to add love card: $e');
+    } finally {
+      isSubmitting = false;
+      notifyListeners();
     }
   }
+
+
 
   Future<void> waterGardenAndSendFlower() async {
     try {

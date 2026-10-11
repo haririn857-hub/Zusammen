@@ -132,7 +132,12 @@ class ComfortCouponsWidget extends StatelessWidget {
           else
             Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Center(child: Text('Loading loving coupons…', style: AppTypography.body())),
+              child: Center(
+                child: Text(
+                  'No active coupons right now. Hari will surprise you with new coupons soon! 🎟️',
+                  style: AppTypography.body(fontSize: 12, color: AppColors.textTertiary),
+                ),
+              ),
             ),
         ],
       ),

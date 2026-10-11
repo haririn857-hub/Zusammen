@@ -206,8 +206,25 @@ class _GermanyRoadmapViewState extends State<GermanyRoadmapView> {
             })
           else
             RomanticCard(
-              padding: const EdgeInsets.all(16),
-              child: Center(child: Text('Loading dream dates…', style: AppTypography.body())),
+              padding: const EdgeInsets.all(20),
+              child: Center(
+                child: Column(
+                  children: [
+                    const Text('🏰', style: TextStyle(fontSize: 28)),
+                    const SizedBox(height: 8),
+                    Text(
+                      'No Dream Dates Added Yet',
+                      style: AppTypography.romanticHeadline(fontSize: 16, color: AppColors.textPrimary),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Tap the + button above to plan our first romantic spot in Munich or the Black Forest! 🍁',
+                      style: AppTypography.body(fontSize: 12, color: AppColors.textTertiary),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
             ),
         ],
       ),
@@ -289,67 +306,91 @@ class _GermanyRoadmapViewState extends State<GermanyRoadmapView> {
     final titleController = TextEditingController();
     final locationController = TextEditingController();
     final seasonController = TextEditingController(text: 'Winter');
+    bool isSubmitting = false;
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: Text('Add a Dream Date in Germany', style: AppTypography.romanticHeadline(fontSize: 18)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: titleController,
-              style: AppTypography.body(color: Colors.white),
-              decoration: InputDecoration(
-                labelText: 'Date Idea (e.g. Picnic at Englischer Garten)',
-                labelStyle: AppTypography.body(color: AppColors.textTertiary),
-                filled: true,
-                fillColor: AppColors.surfaceGlass,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-              ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: AppColors.surface,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+            title: Text('Add a Dream Date in Germany', style: AppTypography.romanticHeadline(fontSize: 18)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  style: AppTypography.body(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Date Idea (e.g. Picnic at Englischer Garten)',
+                    labelStyle: AppTypography.body(color: AppColors.textTertiary),
+                    filled: true,
+                    fillColor: AppColors.surfaceGlass,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: locationController,
+                  style: AppTypography.body(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Location in Germany (e.g. Munich, Berlin, Black Forest)',
+                    labelStyle: AppTypography.body(color: AppColors.textTertiary),
+                    filled: true,
+                    fillColor: AppColors.surfaceGlass,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: locationController,
-              style: AppTypography.body(color: Colors.white),
-              decoration: InputDecoration(
-                labelText: 'Location in Germany (e.g. Munich, Berlin, Black Forest)',
-                labelStyle: AppTypography.body(color: AppColors.textTertiary),
-                filled: true,
-                fillColor: AppColors.surfaceGlass,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+            actions: [
+              TextButton(
+                onPressed: isSubmitting ? null : () => Navigator.pop(ctx),
+                child: const Text('Cancel', style: TextStyle(color: AppColors.textTertiary)),
               ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: AppColors.textTertiary))),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.champagneGold, foregroundColor: Colors.black),
-            onPressed: () async {
-              if (titleController.text.trim().isNotEmpty) {
-                HapticFeedback.mediumImpact();
-                await widget.controller.addDreamDate(
-                  title: titleController.text.trim(),
-                  description: 'A magical moment together in Germany',
-                  location: locationController.text.trim().isNotEmpty ? locationController.text.trim() : 'Munich',
-                  season: seasonController.text.trim(),
-                );
-                if (ctx.mounted) Navigator.pop(ctx);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      behavior: SnackBarBehavior.floating,
-                      content: Text('🏰 Added new fairytale date to our Germany bucket list!'),
-                    ),
-                  );
-                }
-              }
-            },
-            child: const Text('Add to Bucket List', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.champagneGold,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                ),
+                onPressed: isSubmitting
+                    ? null
+                    : () async {
+                        final title = titleController.text.trim();
+                        if (title.isNotEmpty) {
+                          setDialogState(() => isSubmitting = true);
+                          HapticFeedback.mediumImpact();
+                          await widget.controller.addDreamDate(
+                            title: title,
+                            description: 'A magical moment together in Germany',
+                            location: locationController.text.trim().isNotEmpty ? locationController.text.trim() : 'Munich',
+                            season: seasonController.text.trim(),
+                          );
+                          if (ctx.mounted) Navigator.pop(ctx);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                behavior: SnackBarBehavior.floating,
+                                content: Text('🏰 Added new fairytale date to our Germany bucket list!'),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                child: isSubmitting
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                      )
+                    : const Text('Add to Bucket List', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

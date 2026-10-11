@@ -8,13 +8,11 @@ import '../controllers/dashboard_controller.dart';
 import '../widgets/countdown_header_widget.dart';
 import '../widgets/dual_horizons_widget.dart';
 import '../widgets/sticky_note_widget.dart';
-import '../widgets/coin_jar_widget.dart';
 import '../widgets/thumbprint_kiss_widget.dart';
 import '../widgets/budget_planner_view.dart';
 import '../widgets/love_deck_view.dart';
 import '../widgets/germany_roadmap_view.dart';
 import '../widgets/pamper_view.dart';
-import '../widgets/daily_capsule_widget.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -198,20 +196,12 @@ class _DashboardPageState extends State<DashboardPage> {
               DualHorizonsWidget(controller: _controller),
               const SizedBox(height: 18),
 
-              // 3. Morning Sticky Note on Virtual Fridge
+              // 3. Intimate Note from Partner
               StickyNoteWidget(controller: _controller),
               const SizedBox(height: 18),
 
-              // 4. Germany Micro-Sacrifice Coin Jar
-              CoinJarWidget(controller: _controller),
-              const SizedBox(height: 18),
-
-              // 5. Live Love Touch & Heartbeat Pulse
+              // 4. Live Love Touch & Heartbeat Pulse
               ThumbprintKissWidget(controller: _controller),
-              const SizedBox(height: 18),
-
-              // 6. Daily Love Capsule (Our Shared Morning Reflection)
-              DailyCapsuleWidget(controller: _controller),
             ]),
           ),
         ),
