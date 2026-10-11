@@ -43,4 +43,14 @@ class AppTypography {
       letterSpacing: 0.5,
     );
   }
+
+  // Small Captions & Letterspaced Badges
+  static TextStyle caption({double fontSize = 12, FontWeight fontWeight = FontWeight.w600, Color color = AppColors.textTertiary, double letterSpacing = 0.0}) {
+    return GoogleFonts.outfit(
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      color: color,
+      letterSpacing: letterSpacing,
+    );
+  }
 }
