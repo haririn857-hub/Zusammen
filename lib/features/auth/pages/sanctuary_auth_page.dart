@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/themes/colors.dart';
 import '../../../core/themes/typography.dart';
 import '../../../services/supabase/service/supabase_service.dart';
+import '../../../shared/widgets/zusammen_logo.dart';
 import '../../dashboard/pages/dashboard_page.dart';
 
 class SanctuaryAuthPage extends StatefulWidget {
@@ -123,23 +124,8 @@ class _SanctuaryAuthPageState extends State<SanctuaryAuthPage> with SingleTicker
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Romantic Icon
-                      Container(
-                        padding: const EdgeInsets.all(18),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.surfaceGlassCard,
-                          border: Border.all(color: AppColors.borderGlow.withValues(alpha: 0.3)),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.roseQuartz.withValues(alpha: 0.15),
-                              blurRadius: 30,
-                              spreadRadius: 2,
-                            ),
-                          ],
-                        ),
-                        child: const Text('✨ ❤️ ✨', style: TextStyle(fontSize: 26)),
-                      ),
+                      // Luxury Brand Emblem
+                      const ZusammenLogo(size: 80),
                       const SizedBox(height: 20),
 
                       // Sanctuary Title

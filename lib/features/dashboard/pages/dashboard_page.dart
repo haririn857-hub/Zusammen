@@ -13,6 +13,7 @@ import '../widgets/budget_planner_view.dart';
 import '../widgets/love_deck_view.dart';
 import '../widgets/germany_roadmap_view.dart';
 import '../widgets/pamper_view.dart';
+import '../../../shared/widgets/zusammen_logo.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -78,16 +79,22 @@ class _DashboardPageState extends State<DashboardPage> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                  Row(
                                     children: [
-                                      Text(
-                                        'Zusammen',
-                                        style: AppTypography.romanticHeadline(fontSize: 22, color: AppColors.champagneGold),
-                                      ),
-                                      Text(
-                                        '${_controller.coupleTitle} — Für Immer',
-                                        style: AppTypography.loveScript(fontSize: 16, color: AppColors.warmBlush),
+                                      const ZusammenLogo(size: 38),
+                                      const SizedBox(width: 10),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Zusammen',
+                                            style: AppTypography.romanticHeadline(fontSize: 22, color: AppColors.champagneGold),
+                                          ),
+                                          Text(
+                                            '${_controller.coupleTitle} — Für Immer',
+                                            style: AppTypography.loveScript(fontSize: 16, color: AppColors.warmBlush),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),

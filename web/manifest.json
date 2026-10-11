@@ -1,11 +1,11 @@
 {
-    "name": "zusammen",
-    "short_name": "zusammen",
+    "name": "Zusammen — Hari & Rintamol",
+    "short_name": "Zusammen",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#120B10",
+    "theme_color": "#E6C280",
+    "description": "A private romantic sanctuary and Germany reunion tracker for Hari & Rintamol.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
