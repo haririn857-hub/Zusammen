@@ -1,11 +1,11 @@
 {
-    "name": "Zusammen — Hari & Rintamol",
+    "name": "Zusammen — Harimon & Rintamol",
     "short_name": "Zusammen",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#120B10",
     "theme_color": "#E6C280",
-    "description": "A private romantic sanctuary and Germany reunion tracker for Hari & Rintamol.",
+    "description": "A private romantic sanctuary and Germany reunion tracker for Harimon & Rintamol.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -1,9 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/themes/colors.dart';
 import '../../../core/themes/typography.dart';
 
-class LoveKissCelebrationDialog extends StatelessWidget {
+class LoveKissCelebrationDialog extends StatefulWidget {
   final String title;
   final String subtitle;
   final String senderName;
@@ -57,13 +58,30 @@ class LoveKissCelebrationDialog extends StatelessWidget {
     ).then((_) {
       isShowing = false;
     });
+  }
 
-    // Auto dismiss celebration after 4 seconds
-    Future.delayed(const Duration(milliseconds: 3800), () {
-      if (isShowing && Navigator.of(context, rootNavigator: true).canPop()) {
+  @override
+  State<LoveKissCelebrationDialog> createState() => _LoveKissCelebrationDialogState();
+}
+
+class _LoveKissCelebrationDialogState extends State<LoveKissCelebrationDialog> {
+  Timer? _autoDismissTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Auto dismiss celebration after 3.8 seconds without cross-async context lint
+    _autoDismissTimer = Timer(const Duration(milliseconds: 3800), () {
+      if (mounted && Navigator.of(context, rootNavigator: true).canPop()) {
         Navigator.of(context, rootNavigator: true).pop();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _autoDismissTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -157,7 +175,7 @@ class LoveKissCelebrationDialog extends StatelessWidget {
                     ),
                     child: Center(
                       child: Text(
-                        isIncoming ? '💋' : '❤️',
+                        widget.isIncoming ? '💋' : '❤️',
                         style: const TextStyle(fontSize: 46),
                       ),
                     ),
@@ -172,7 +190,7 @@ class LoveKissCelebrationDialog extends StatelessWidget {
 
               // Title
               Text(
-                title,
+                widget.title,
                 style: AppTypography.romanticHeadline(
                   fontSize: 22,
                   color: AppColors.champagneGold,
@@ -184,7 +202,7 @@ class LoveKissCelebrationDialog extends StatelessWidget {
 
               // Subtitle / Romantic Message
               Text(
-                subtitle,
+                widget.subtitle,
                 style: AppTypography.loveScript(
                   fontSize: 18,
                   color: AppColors.warmBlush,
@@ -195,11 +213,11 @@ class LoveKissCelebrationDialog extends StatelessWidget {
               const SizedBox(height: 26),
 
               // Action Buttons
-              if (isIncoming && onSendBack != null)
+              if (widget.isIncoming && widget.onSendBack != null)
                 ElevatedButton.icon(
                   onPressed: () {
                     Navigator.of(context, rootNavigator: true).pop();
-                    onSendBack?.call();
+                    widget.onSendBack?.call();
                   },
                   icon: const Icon(Icons.favorite, color: Colors.white, size: 20),
                   label: const Text('Send Kiss Back 💋', style: TextStyle(fontWeight: FontWeight.bold)),

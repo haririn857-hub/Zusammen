@@ -4,7 +4,7 @@ class AppConfig {
   static const String partnerBoy = 'Harikrishnan';
   static const String partnerGirl = 'Rinta Maria';
   static const String partnerGirlPetName = 'Rintamol';
-  static const String partnerBoyPetName = 'Hari';
+  static const String partnerBoyPetName = 'Harimon';
 
   // Couple ID
   static const String coupleId = '11111111-1111-1111-1111-111111111111';

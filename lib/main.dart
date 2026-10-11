@@ -18,7 +18,7 @@ class ZusammenApp extends StatelessWidget {
     final isAuthenticated = SupabaseService().isAuthenticated;
 
     return MaterialApp(
-      title: 'Zusammen — Hari & Rintamol',
+      title: 'Zusammen — Harimon & Rintamol',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.romanticDarkTheme,
       home: isAuthenticated ? const DashboardPage() : const SanctuaryAuthPage(),

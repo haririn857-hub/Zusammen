@@ -47,9 +47,12 @@ class DashboardController extends ChangeNotifier with Initializer {
   Map<String, dynamic>? get rintaMember =>
       coupleMembers.firstWhere((m) => m['partner_role'] == 'rinta', orElse: () => <String, dynamic>{});
 
-  String get hariName => (hariMember?['pet_name'] as String?) ?? (coupleData?['couple_name']?.toString().split('&').first.trim() ?? 'Hari');
+  String get hariName {
+    final pet = (hariMember?['pet_name'] as String?) ?? (coupleData?['couple_name']?.toString().split('&').first.trim() ?? 'Harimon');
+    return (pet.toLowerCase() == 'hari') ? 'Harimon' : pet;
+  }
   String get rintaName => (rintaMember?['pet_name'] as String?) ?? (coupleData?['couple_name']?.toString().split('&').last.trim() ?? 'Rintamol');
-  String get coupleTitle => (coupleData?['couple_name'] as String?) ?? '$hariName & $rintaName';
+  String get coupleTitle => '$hariName & $rintaName';
 
   // Dynamic Perspective based on authenticated partner
   bool get isHari => SupabaseService().isCurrentHari;

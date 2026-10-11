@@ -139,7 +139,7 @@ class _SanctuaryAuthPageState extends State<SanctuaryAuthPage> with SingleTicker
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'A Private Sanctuary for Hari & Rintamol',
+                        'A Private Sanctuary for Harimon & Rintamol',
                         style: AppTypography.body(
                           fontSize: 13,
                           color: AppColors.textSecondary,
@@ -163,7 +163,7 @@ class _SanctuaryAuthPageState extends State<SanctuaryAuthPage> with SingleTicker
                         children: [
                           Expanded(
                             child: _buildPartnerCard(
-                              name: 'Hari',
+                              name: 'Harimon',
                               fullName: 'Harikrishnan',
                               roleTag: 'The Architect',
                               avatar: '🤴',

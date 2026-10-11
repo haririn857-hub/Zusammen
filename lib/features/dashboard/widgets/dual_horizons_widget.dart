@@ -71,7 +71,7 @@ class DualHorizonsWidget extends StatelessWidget {
     final rintaMood = controller?.rintaMember?['current_mood']?.toString().replaceAll('_', ' ') ?? 'peaceful';
     final hariMood = controller?.hariMember?['current_mood']?.toString().replaceAll('_', ' ') ?? 'determined';
     final rintaName = controller?.rintaName ?? 'Rintamol';
-    final hariName = controller?.hariName ?? 'Hari';
+    final hariName = controller?.hariName ?? 'Harimon';
 
     return Row(
       children: [

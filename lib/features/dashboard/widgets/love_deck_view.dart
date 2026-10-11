@@ -190,7 +190,7 @@ class _LoveDeckViewState extends State<LoveDeckView> {
                     decoration: InputDecoration(
                       labelText: 'Loving Message / Whisper',
                       labelStyle: const TextStyle(color: AppColors.champagneGold, fontSize: 13),
-                      hintText: 'Hari/Rinta whispering reassuring words with deep love...',
+                      hintText: 'Harimon/Rinta whispering reassuring words with deep love...',
                       hintStyle: AppTypography.body(color: AppColors.textTertiary),
                       filled: true,
                       fillColor: AppColors.surfaceGlass,

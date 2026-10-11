@@ -20,7 +20,7 @@ BEGIN
         flowers_bloomed
     ) VALUES (
         v_couple_id,
-        'Hari & Rintamol',
+        'Harimon & Rintamol',
         crypt('our_secret_2028', gen_salt('bf')),
         '2028-10-01',
         11904.00,
@@ -56,11 +56,11 @@ BEGIN
     INSERT INTO public.comfort_coupons (
         couple_id, title, description, icon_name, is_redeemed
     ) VALUES
-    (v_couple_id, 'Win Any Silly Argument Instantly', 'Hari must surrender immediately with a smile & chocolate!', 'crown', false),
-    (v_couple_id, 'Midnight Maggi / Hot Chai Made by Hari', 'Prepared lovingly by Hari whenever Rintamol craves it.', 'ramen_dining', true),
+    (v_couple_id, 'Win Any Silly Argument Instantly', 'Harimon must surrender immediately with a smile & chocolate!', 'crown', false),
+    (v_couple_id, 'Midnight Maggi / Hot Chai Made by Harimon', 'Prepared lovingly by Harimon whenever Rintamol craves it.', 'ramen_dining', true),
     (v_couple_id, '30 Minutes of Hair Oiling & Head Massage', 'Complete relaxation without complaints.', 'spa', false),
-    (v_couple_id, 'Unlimited Venting Session', 'Hari listens quietly with zero advice, just hugs and understanding.', 'favorite', false),
-    (v_couple_id, '1 Sweet Pastry / Ice Cream Treat', 'Paid from Hari’s pocket with love.', 'icecream', false)
+    (v_couple_id, 'Unlimited Venting Session', 'Harimon listens quietly with zero advice, just hugs and understanding.', 'favorite', false),
+    (v_couple_id, '1 Sweet Pastry / Ice Cream Treat', 'Paid from Harimon’s pocket with love.', 'icecream', false)
     ON CONFLICT DO NOTHING;
 
     -- 5. Insert Germany Dream Date Bucket List
