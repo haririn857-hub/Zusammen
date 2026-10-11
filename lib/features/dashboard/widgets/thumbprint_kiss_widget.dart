@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/themes/colors.dart';
 import '../../../core/themes/typography.dart';
@@ -34,14 +33,13 @@ class ThumbprintKissWidget extends StatelessWidget {
           // Central Glowing Heart Pulse
           GestureDetector(
             onTap: () {
-              HapticFeedback.heavyImpact();
               controller.triggerHeartPulse();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   backgroundColor: AppColors.surface,
                   behavior: SnackBarBehavior.floating,
                   content: Text(
-                    '❤️ Sent heartbeat pulse! Your phone and ${controller.rintaName}’s phone are vibrating together.',
+                    '❤️ Sent heartbeat pulse! Your phone and ${controller.partnerName}’s phone are vibrating together.',
                     style: AppTypography.body(color: AppColors.warmBlush),
                   ),
                 ),
@@ -78,7 +76,7 @@ class ThumbprintKissWidget extends StatelessWidget {
 
           const SizedBox(height: 14),
           Text(
-            controller.isHeartBeating ? '“Holding your hand right now across the distance…”' : 'Tap to send an instant Heartbeat & Kiss to ${controller.rintaName}',
+            controller.isHeartBeating ? '“Holding your hand right now across the distance…”' : 'Tap to send an instant Heartbeat & Kiss to ${controller.partnerName}',
             style: AppTypography.loveScript(fontSize: 18, color: AppColors.warmBlush),
             textAlign: TextAlign.center,
           ),

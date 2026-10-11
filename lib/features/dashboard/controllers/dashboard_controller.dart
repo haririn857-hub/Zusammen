@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/utils/mixin/initializer.dart';
+import '../../../core/utils/vibration_helper.dart';
 import '../../../services/supabase/service/supabase_service.dart';
 
 class DashboardController extends ChangeNotifier with Initializer {
@@ -232,19 +233,44 @@ class DashboardController extends ChangeNotifier with Initializer {
 
   void _subscribeToRealtime() {
     try {
-      _realtimeChannel = _client.channel('zusammen_couple_realtime');
+      _realtimeChannel = _client.channel(
+        'couple_realtime_${AppConfig.coupleId}',
+        opts: const RealtimeChannelConfig(ack: true),
+      );
 
-      _realtimeChannel?.onBroadcast(event: 'heartbeat_pulse', callback: (payload) {
-        isHeartBeating = true;
-        notifyListeners();
+      _realtimeChannel
+          ?.onBroadcast(event: 'heartbeat_pulse', callback: (payload) {
+            debugPrint('Received heartbeat pulse from partner: $payload');
+            isHeartBeating = true;
+            notifyListeners();
+            VibrationHelper.vibrateHeartbeat();
 
-        Future.delayed(const Duration(seconds: 4), () {
-          isHeartBeating = false;
-          notifyListeners();
-        });
-      });
-
-      _realtimeChannel?.subscribe();
+            Future.delayed(const Duration(seconds: 4), () {
+              isHeartBeating = false;
+              notifyListeners();
+            });
+          })
+          .onBroadcast(event: 'note_updated', callback: (payload) {
+            debugPrint('Partner updated sticky note. Syncing...');
+            fetchAllData(silent: true);
+            VibrationHelper.vibrateGentle();
+          })
+          .onBroadcast(event: 'mood_updated', callback: (payload) {
+            debugPrint('Partner updated mood. Syncing...');
+            fetchAllData(silent: true);
+          })
+          .onBroadcast(event: 'savings_updated', callback: (payload) {
+            debugPrint('Partner updated savings. Syncing...');
+            fetchAllData(silent: true);
+          })
+          .onBroadcast(event: 'flower_watered', callback: (payload) {
+            debugPrint('Partner watered the balcony garden. Syncing...');
+            fetchAllData(silent: true);
+            VibrationHelper.vibrateGentle();
+          })
+          .subscribe((status, error) {
+            debugPrint('Realtime channel status: $status, error: $error');
+          });
     } catch (e) {
       debugPrint('Realtime subscription error: $e');
     }
@@ -278,6 +304,11 @@ class DashboardController extends ChangeNotifier with Initializer {
       flowersBloomed += 1;
 
       await _client.from('couples').update({'flowers_bloomed': flowersBloomed}).eq('id', AppConfig.coupleId);
+
+      _realtimeChannel?.sendBroadcastMessage(
+        event: 'savings_updated',
+        payload: {'sender': myName, 'amount': amount},
+      );
     } catch (e) {
       debugPrint('Error on addSavingLog: $e');
     } finally {
@@ -313,6 +344,11 @@ class DashboardController extends ChangeNotifier with Initializer {
         'current_mood': newMood,
         'last_active': DateTime.now().toIso8601String(),
       }).eq('couple_id', AppConfig.coupleId).eq('partner_role', partnerRole);
+
+      _realtimeChannel?.sendBroadcastMessage(
+        event: 'mood_updated',
+        payload: {'sender': myName, 'role': partnerRole, 'mood': newMood},
+      );
     } catch (e) {
       debugPrint('Failed to update partner mood: $e');
     }
@@ -435,6 +471,11 @@ class DashboardController extends ChangeNotifier with Initializer {
 
       stickyNotes.removeWhere((n) => n['author_id'] == userId);
       stickyNotes.insert(0, inserted);
+
+      _realtimeChannel?.sendBroadcastMessage(
+        event: 'note_updated',
+        payload: {'sender': myName, 'timestamp': DateTime.now().toIso8601String()},
+      );
     } catch (e) {
       debugPrint('Failed to post note: $e');
     } finally {
@@ -474,7 +515,7 @@ class DashboardController extends ChangeNotifier with Initializer {
   Future<void> waterGardenAndSendFlower() async {
     try {
       await _ensureAuth();
-      final userId = _client.auth.currentUser?.id ?? '29ed297a-c70a-41ae-b3a8-ff25c1ec562c';
+      final userId = _client.auth.currentUser?.id ?? (isHari ? '29ed297a-c70a-41ae-b3a8-ff25c1ec562c' : '83c2770e-d03d-4985-ba3a-1f7ca5c0b05d');
 
       flowersBloomed += 1;
       await _client.from('couples').update({'flowers_bloomed': flowersBloomed}).eq('id', AppConfig.coupleId);
@@ -486,6 +527,11 @@ class DashboardController extends ChangeNotifier with Initializer {
         'message': 'Watered with love by $myName',
       });
 
+      _realtimeChannel?.sendBroadcastMessage(
+        event: 'flower_watered',
+        payload: {'sender': myName},
+      );
+
       notifyListeners();
     } catch (e) {
       debugPrint('Failed to water flower: $e');
@@ -496,13 +542,14 @@ class DashboardController extends ChangeNotifier with Initializer {
   void triggerHeartPulse() {
     isHeartBeating = true;
     notifyListeners();
+    VibrationHelper.vibrateHeartbeat();
 
     _realtimeChannel?.sendBroadcastMessage(
       event: 'heartbeat_pulse',
       payload: {'sender': myName, 'timestamp': DateTime.now().toIso8601String()},
     );
 
-    Future.delayed(const Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 4), () {
       isHeartBeating = false;
       notifyListeners();
     });
