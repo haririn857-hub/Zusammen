@@ -58,7 +58,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           Icon(Icons.favorite, size: 48, color: AppColors.roseQuartz),
                           const SizedBox(height: 16),
                           Text(
-                            'Connecting to our sanctuary…',
+                            'Opening our sanctuary…',
                             style: AppTypography.loveScript(fontSize: 22, color: AppColors.warmBlush),
                           ),
                         ],
@@ -97,7 +97,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                       IconButton(
                                         icon: const Icon(Icons.refresh_rounded, size: 20, color: AppColors.champagneGold),
                                         onPressed: () => _controller.fetchAllData(),
-                                        tooltip: 'Sync with Supabase',
+                                        tooltip: 'Refresh Our Sanctuary',
                                       ),
                                       Container(
                                         padding: const EdgeInsetsDirectional.symmetric(horizontal: 12, vertical: 6),
@@ -118,7 +118,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                             ),
                                             const SizedBox(width: 8),
                                             Text(
-                                              'Live Sync',
+                                              'Connected ❤️',
                                               style: AppTypography.body(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white),
                                             ),
                                           ],

@@ -50,7 +50,7 @@ class _LoveDeckViewState extends State<LoveDeckView> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       behavior: SnackBarBehavior.floating,
-                      content: Text('💌 Added new reason to our love deck in Supabase!'),
+                      content: Text('💌 Added new reason to our sacred love deck!'),
                     ),
                   );
                 }
@@ -129,7 +129,7 @@ class _LoveDeckViewState extends State<LoveDeckView> {
                         ),
                       ),
                       Text(
-                        'Live from Supabase',
+                        'Forever In My Heart 💖',
                         style: AppTypography.body(fontSize: 11, color: AppColors.champagneGold),
                       ),
                     ],
@@ -184,7 +184,7 @@ class _LoveDeckViewState extends State<LoveDeckView> {
             RomanticCard(
               padding: const EdgeInsetsDirectional.all(24),
               child: Center(
-                child: Text('Loading our love reasons from Supabase…', style: AppTypography.body()),
+                child: Text('Opening our love deck…', style: AppTypography.body()),
               ),
             ),
 

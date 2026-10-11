@@ -18,10 +18,33 @@ class SupabaseService with Initializer {
         url: AppConfig.supabaseUrl,
         publishableKey: AppConfig.supabaseAnonKey,
       );
+
+      // Auto-authenticate so Row-Level Security allows reading all couple data
+      if (client.auth.currentSession == null) {
+        try {
+          await client.auth.signInWithPassword(
+            email: 'hari@zusammen.love',
+            password: 'HariAndRintamol2028!',
+          );
+          debugPrint('Authenticated as Hari successfully');
+        } catch (authError) {
+          debugPrint('Auto-auth warning: $authError');
+        }
+      }
+
       debugPrint('Supabase initialized successfully for ${AppConfig.appName}');
     } catch (e) {
       debugPrint('Supabase initialization error: $e');
       rethrow;
     }
+  }
+
+  /// Switch active identity between Hari and Rinta
+  Future<void> switchPartner({required bool isHari}) async {
+    final email = isHari ? 'hari@zusammen.love' : 'rinta@zusammen.love';
+    await client.auth.signInWithPassword(
+      email: email,
+      password: 'HariAndRintamol2028!',
+    );
   }
 }

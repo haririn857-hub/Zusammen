@@ -21,7 +21,7 @@ class CoinJarWidget extends StatelessWidget {
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 2),
           content: Text(
-            '🪙 Clink! Added ₹${amount.toInt()} ($note) to Supabase!',
+            '🪙 Clink! Added ₹${amount.toInt()} ($note) to our Germany fund!',
             style: AppTypography.body(color: AppColors.champagneGold),
           ),
         ),

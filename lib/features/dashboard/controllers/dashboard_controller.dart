@@ -9,7 +9,6 @@ class DashboardController extends ChangeNotifier with Initializer {
   bool isLoading = true;
   String? errorMessage;
 
-  // Supabase Client
   SupabaseClient get _client => SupabaseService().client;
 
   // Couple Data
@@ -50,8 +49,22 @@ class DashboardController extends ChangeNotifier with Initializer {
 
   @override
   Future<void> onInitialize() async {
+    await _ensureAuth();
     await fetchAllData();
     _subscribeToRealtime();
+  }
+
+  Future<void> _ensureAuth() async {
+    if (_client.auth.currentSession == null) {
+      try {
+        await _client.auth.signInWithPassword(
+          email: 'hari@zusammen.love',
+          password: 'HariAndRintamol2028!',
+        );
+      } catch (e) {
+        debugPrint('Auth check: $e');
+      }
+    }
   }
 
   Future<void> fetchAllData() async {
@@ -59,6 +72,8 @@ class DashboardController extends ChangeNotifier with Initializer {
       isLoading = true;
       errorMessage = null;
       notifyListeners();
+
+      await _ensureAuth();
 
       // 1. Fetch Couple Info
       final coupleRes = await _client
@@ -143,7 +158,7 @@ class DashboardController extends ChangeNotifier with Initializer {
       isLoading = false;
       notifyListeners();
     } catch (e, st) {
-      debugPrint('Error fetching Supabase data: $e\n$st');
+      debugPrint('Error fetching data: $e\n$st');
       errorMessage = e.toString();
       isLoading = false;
       notifyListeners();
@@ -154,7 +169,6 @@ class DashboardController extends ChangeNotifier with Initializer {
     try {
       _realtimeChannel = _client.channel('zusammen_couple_realtime');
 
-      // Listen for instant love touch broadcast
       _realtimeChannel?.onBroadcast(event: 'heartbeat_pulse', callback: (payload) {
         isHeartBeating = true;
         notifyListeners();
@@ -171,14 +185,17 @@ class DashboardController extends ChangeNotifier with Initializer {
   }
 
   // ==============================================================================
-  // REAL ACTIONS (Writing directly to Supabase)
+  // ACTIONS (With proper user_id & couple authentication)
   // ==============================================================================
 
-  /// Add a micro-saving or deposit
   Future<void> addSavingLog({required double amount, required String title, String? note}) async {
     try {
+      await _ensureAuth();
+      final userId = _client.auth.currentUser?.id ?? '29ed297a-c70a-41ae-b3a8-ff25c1ec562c';
+
       final newLog = {
         'couple_id': AppConfig.coupleId,
+        'user_id': userId,
         'amount': amount,
         'title': title,
         'note': note ?? 'Micro-sacrifice coin added with love',
@@ -192,7 +209,6 @@ class DashboardController extends ChangeNotifier with Initializer {
       flowersBloomed += 1;
       await _client.from('couples').update({'flowers_bloomed': flowersBloomed}).eq('id', AppConfig.coupleId);
 
-      // Refresh data
       await fetchAllData();
     } catch (e) {
       debugPrint('Failed to add saving: $e');
@@ -200,15 +216,14 @@ class DashboardController extends ChangeNotifier with Initializer {
     }
   }
 
-  /// Redeem one of Rintamol's comfort coupons
   Future<void> redeemCoupon(String couponId) async {
     try {
+      await _ensureAuth();
       await _client.from('comfort_coupons').update({
         'is_redeemed': true,
         'redeemed_at': DateTime.now().toIso8601String(),
       }).eq('id', couponId);
 
-      // Local update for instant 0ms feedback
       final index = coupons.indexWhere((c) => c['id'] == couponId);
       if (index != -1) {
         coupons[index]['is_redeemed'] = true;
@@ -220,9 +235,9 @@ class DashboardController extends ChangeNotifier with Initializer {
     }
   }
 
-  /// Toggle Germany Roadmap milestone
   Future<void> toggleMilestone(String milestoneId, bool isCompleted) async {
     try {
+      await _ensureAuth();
       await _client.from('germany_milestones').update({
         'is_completed': isCompleted,
         'completed_at': isCompleted ? DateTime.now().toIso8601String() : null,
@@ -239,15 +254,16 @@ class DashboardController extends ChangeNotifier with Initializer {
     }
   }
 
-  /// Post a new morning fridge note
   Future<void> postStickyNote(String newNote) async {
     try {
-      // Deactivate old notes
+      await _ensureAuth();
+      final userId = _client.auth.currentUser?.id ?? '29ed297a-c70a-41ae-b3a8-ff25c1ec562c';
+
       await _client.from('sticky_notes').update({'is_active': false}).eq('couple_id', AppConfig.coupleId);
 
-      // Insert new note
       await _client.from('sticky_notes').insert({
         'couple_id': AppConfig.coupleId,
+        'author_id': userId,
         'note_text': newNote,
         'color_hex': '#FFF3B0',
         'is_active': true,
@@ -261,12 +277,15 @@ class DashboardController extends ChangeNotifier with Initializer {
     }
   }
 
-  /// Add a reason to the 100 reasons love deck
   Future<void> addLoveCard(String reasonText) async {
     try {
+      await _ensureAuth();
+      final userId = _client.auth.currentUser?.id ?? '29ed297a-c70a-41ae-b3a8-ff25c1ec562c';
       final newCardNumber = loveCards.length + 1;
+
       await _client.from('love_deck_cards').insert({
         'couple_id': AppConfig.coupleId,
+        'author_id': userId,
         'card_number': newCardNumber,
         'reason_text': reasonText,
       });
@@ -278,14 +297,17 @@ class DashboardController extends ChangeNotifier with Initializer {
     }
   }
 
-  /// Send a morning flower to Rinta's balcony
   Future<void> waterGardenAndSendFlower() async {
     try {
+      await _ensureAuth();
+      final userId = _client.auth.currentUser?.id ?? '29ed297a-c70a-41ae-b3a8-ff25c1ec562c';
+
       flowersBloomed += 1;
       await _client.from('couples').update({'flowers_bloomed': flowersBloomed}).eq('id', AppConfig.coupleId);
 
       await _client.from('balcony_flowers').insert({
         'couple_id': AppConfig.coupleId,
+        'sender_id': userId,
         'flower_type': 'rose',
         'message': 'Watered with love by Hari',
       });
@@ -297,12 +319,10 @@ class DashboardController extends ChangeNotifier with Initializer {
     }
   }
 
-  /// Send live touch / heartbeat pulse
   void triggerHeartPulse() {
     isHeartBeating = true;
     notifyListeners();
 
-    // Broadcast across Supabase Realtime channel
     _realtimeChannel?.sendBroadcastMessage(
       event: 'heartbeat_pulse',
       payload: {'sender': 'Hari', 'timestamp': DateTime.now().toIso8601String()},
